@@ -24,7 +24,7 @@
         {
             "label": "launch",
             "type": "shell",
-            "command": "${env:FUSEE_LAUNCHER} \"${workspaceFolder}/out/biskeydump.bin\"",
+            "command": "${env:FUSEE_LAUNCHER} \"${workspaceFolder}/out/memloader.bin\"",
             "dependsOn": [
 				"compile"
             ],
