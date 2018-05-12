@@ -16,7 +16,7 @@ This section is required by the GPLv2 license
  * initial code based on https://github.com/Atmosphere-NX/Atmosphere
  * everything except fusee-primary been removed (from Atmosphere)
  * all hwinit code has been replaced by the updated versions from https://github.com/nwert/hekate
- * Files pinmux.c/h, carveout.c/h, flow.h, sdram.c/h, decomp.h,lz4_wrapper.c,lzma.c,lzmadecode.c,lz4.c.inc,cbmem.c/h are based on f0f coreboot sources
+ * Files pinmux.c/h, carveout.c/h, flow.h, sdram.c/h, decomp.h,lz4_wrapper.c,lzma.c,lzmadecode.c,lz4.c.inc,cbmem.c/h are based on https://github.com/fail0verflow/switch-coreboot.git sources
  * main.c has been modified to display an on-screen menu and either load binaries via ini files on microsd card, or directly via USB transfer from host
 
 ## Responsibility
