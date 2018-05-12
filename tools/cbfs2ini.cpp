@@ -1,10 +1,10 @@
 #include "Types.h"
 #include "ScopeGuard.h"
+#include "RelPath.h"
 #include <cassert>
 #include <cstdio>
 #include <fstream>
 #include <iostream>
-#include <boost/filesystem.hpp>
 
 static int ReadFileToBuf(ByteVector& outBuf, const char* fileType, const char* inputFilename, bool silent)
 {
@@ -357,11 +357,7 @@ int main(int argc, char* argv[])
 	}
 	else
 	{
-		namespace fs=boost::filesystem;
-		auto cbfsPath = fs::canonical(cbfsFilename);
-		auto outputPath = fs::absolute(outputFilename).remove_filename();
-		auto relPath = boost::filesystem::relative(cbfsPath, outputPath);
-		newRelativeFilename = relPath.string();
+		newRelativeFilename = GetRelativePath(cbfsFilename, outputFilename);
 		cbfsFilename = newRelativeFilename.c_str();
 	}
 

@@ -1,10 +1,10 @@
 #include "Types.h"
 #include "ScopeGuard.h"
+#include "RelPath.h"
 #include "Elf.h"
 #include <cassert>
 #include <cstdio>
 #include <fstream>
-#include <boost/filesystem.hpp>
 
 int main(int argc, char* argv[])
 {
@@ -133,11 +133,7 @@ int main(int argc, char* argv[])
 	}
 	else
 	{
-		namespace fs=boost::filesystem;
-		auto cbfsPath = fs::canonical(inputFilename);
-		auto outputPath = fs::absolute(outputFilename).remove_filename();
-		auto relPath = boost::filesystem::relative(cbfsPath, outputPath);
-		newRelativeFilename = relPath.string();
+		newRelativeFilename = GetRelativePath(inputFilename, outputFilename);
 		inputFilename = newRelativeFilename.c_str();
 	}
 

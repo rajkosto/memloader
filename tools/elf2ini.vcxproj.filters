@@ -3,9 +3,10 @@
   <ItemGroup>
     <ClInclude Include="Types.h" />
     <ClInclude Include="ScopeGuard.h" />
+    <ClInclude Include="Elf.h" />
     <ClInclude Include="RelPath.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="cbfs2ini.cpp" />
+    <ClCompile Include="elf2ini.cpp" />
   </ItemGroup>
 </Project>

@@ -299,6 +299,7 @@
     <ClCompile Include="cbfs2ini.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="RelPath.h" />
     <ClInclude Include="ScopeGuard.h" />
     <ClInclude Include="Types.h" />
   </ItemGroup>
