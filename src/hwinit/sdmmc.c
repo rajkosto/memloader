@@ -150,11 +150,15 @@ static int _sdmmc_storage_readwrite_ex(sdmmc_storage_t *storage, u32 *blkcnt_out
 	return 1;
 }
 
-int sdmmc_storage_end(sdmmc_storage_t *storage)
+int sdmmc_storage_end(sdmmc_storage_t *storage, u32 powerOff)
 {
 	if (!_sdmmc_storage_go_idle_state(storage))
+	{
+		DPRINTF("_sdmmc_storage_go_idle_state in sdmmc_storage_end FAILED!\n");
 		return 0;
-	sdmmc_end(storage->sdmmc);
+	}
+
+	sdmmc_end(storage->sdmmc, powerOff);
 	return 1;
 }
 
@@ -533,8 +537,6 @@ static int _sd_storage_get_op_cond(sdmmc_storage_t *storage, int is_version_1, i
 					if (!sdmmc_enable_low_voltage(storage->sdmmc))
 						return 0;
 					storage->is_low_voltage = 1;
-
-					DPRINTF("-> switched to low voltage\n");
 				}
 			}
 

@@ -18,6 +18,7 @@
 #include "t210.h"
 #include "util.h"
 #include "sdmmc.h"
+#include "flow.h"
 
 static const clock_t _clock_uart[] =  {
 	/* UART A */ { 0x4, 0x10, 0x178, 6, 0, 0 },
@@ -445,4 +446,14 @@ void clock_sdmmc_disable(u32 id)
 	_clock_sdmmc_set_reset(id);
 	_clock_sdmmc_clear_enable(id);
 	_clock_sdmmc_is_reset(id);
+}
+
+void clock_halt_bpmp(void)
+{
+	static struct flow_ctlr *flow = (void *)FLOW_CTLR_BASE;
+
+	for (;;) 
+	{
+		flow->halt_cop_events = FLOW_EVENT_JTAG | FLOW_EVENT_LIC_IRQ | FLOW_EVENT_GIC_IRQ | FLOW_MODE_WAITEVENT;
+	}
 }

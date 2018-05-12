@@ -17,8 +17,9 @@
 #ifndef _SDRAM_H_
 #define _SDRAM_H_
 
-void sdram_init();
-const void *sdram_get_params();
-void sdram_lp0_save_params(const void *params);
+struct sdram_params;
+void sdram_init(const struct sdram_params* params);
+const struct sdram_params* sdram_get_params();
+void sdram_lp0_save_params(const struct sdram_params* params);
 
 #endif

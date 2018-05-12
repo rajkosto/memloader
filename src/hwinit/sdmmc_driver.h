@@ -99,7 +99,7 @@ int sdmmc_get_rsp(sdmmc_t *sdmmc, u32 *rsp, u32 size, u32 type);
 int sdmmc_config_tuning(sdmmc_t *sdmmc, u32 type, u32 cmd);
 int sdmmc_stop_transmission(sdmmc_t *sdmmc, u32 *rsp);
 int sdmmc_init(sdmmc_t *sdmmc, u32 id, u32 power, u32 bus_width, u32 type, int no_sd);
-void sdmmc_end(sdmmc_t *sdmmc);
+void sdmmc_end(sdmmc_t *sdmmc, u32 powerOff);
 void sdmmc_init_cmd(sdmmc_cmd_t *cmdbuf, u16 cmd, u32 arg, u32 rsp_type, u32 check_busy);
 int sdmmc_execute_cmd(sdmmc_t *sdmmc, sdmmc_cmd_t *cmd, sdmmc_req_t *req, u32 *blkcnt_out);
 int sdmmc_enable_low_voltage(sdmmc_t *sdmmc);

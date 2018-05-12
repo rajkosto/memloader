@@ -20,8 +20,15 @@
 #define NULL ((void *)0)
 
 #define ALIGN(x, a) (((x) + (a) - 1) & ~((a) - 1))
+#define ALIGN_UP(x,a)   ALIGN((x),(a))
+#define ALIGN_DOWN(x,a) ((x) & ~((typeof(x))(a)-1UL))
+#define IS_ALIGNED(x,a) (((x) & ((typeof(x))(a)-1UL)) == 0)
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
+#define ABS(a) (((a) < 0) ? (-(a)) : (a))
+#define CEIL_DIV(a, b)  (((a) + (b) - 1) / (b))
+#define IS_POWER_OF_2(x)  (((x) & ((x) - 1)) == 0)
+#define DIV_ROUND_UP(x, y)  (((x) + (y) - 1) / (y))
 
 #define OFFSET_OF(t, m) ((u32)&((t *)NULL)->m)
 #define CONTAINER_OF(mp, t, mn) ((t *)((u32)mp - OFFSET_OF(t, mn)))

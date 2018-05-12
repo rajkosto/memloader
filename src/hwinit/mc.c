@@ -1,119 +1,128 @@
 #include "mc.h"
 #include "t210.h"
+#include "mc_t210.h"
 #include "clock.h"
 #include "util.h"
 
 void mc_config_tsec_carveout(u32 bom, u32 size1mb, int lock)
 {
-	MC(MC_SEC_CARVEOUT_BOM) = bom;
-	MC(MC_SEC_CARVEOUT_SIZE_MB) = size1mb;
+	struct tegra_mc_regs * const mc = (void *)MC_BASE;
+
+	mc->sec_carveout_bom = bom;
+	mc->sec_carveout_size_mb = size1mb;
 	if (lock)
-		MC(MC_SEC_CARVEOUT_REG_CTRL) = 1;
+		mc->sec_carveout_reg_ctrl |= 1;
 }
 
 void mc_config_carveout()
 {
+	struct tegra_mc_regs * const mc = (void *)MC_BASE;
+
 	*(vu32 *)0x8005FFFC = 0xC0EDBBCC;
-	MC(MC_VIDEO_PROTECT_GPU_OVERRIDE_0) = 1;
-	MC(MC_VIDEO_PROTECT_GPU_OVERRIDE_1) = 0;
-	MC(MC_VIDEO_PROTECT_BOM) = 0;
-	MC(MC_VIDEO_PROTECT_SIZE_MB) = 0;
-	MC(MC_VIDEO_PROTECT_REG_CTRL) = 1;
+	mc->video_protect_gpu_override_0 = 1;
+	mc->video_protect_gpu_override_1 = 0;
+	mc->video_protect_bom = 0;
+	mc->video_protect_size_mb = 0;
+	mc->video_protect_reg_ctrl = 1;
 
 	//Configure TSEC carveout @ 0x90000000, 1MB.
 	//mc_config_tsec_carveout(0x90000000, 1, 0);
 	mc_config_tsec_carveout(0, 0, 1);
 
-	MC(MC_MTS_CARVEOUT_BOM) = 0;
-	MC(MC_MTS_CARVEOUT_SIZE_MB) = 0;
-	MC(MC_MTS_CARVEOUT_ADR_HI) = 0;
-	MC(MC_MTS_CARVEOUT_REG_CTRL) = 1;
-	MC(MC_SECURITY_CARVEOUT1_BOM) = 0;
-	MC(MC_SECURITY_CARVEOUT1_BOM_HI) = 0;
-	MC(MC_SECURITY_CARVEOUT1_SIZE_128KB) = 0;
-	MC(MC_SECURITY_CARVEOUT1_CLIENT_ACCESS0) = 0;
-	MC(MC_SECURITY_CARVEOUT1_CLIENT_ACCESS1) = 0;
-	MC(MC_SECURITY_CARVEOUT1_CLIENT_ACCESS2) = 0;
-	MC(MC_SECURITY_CARVEOUT1_CLIENT_ACCESS3) = 0;
-	MC(MC_SECURITY_CARVEOUT1_CLIENT_ACCESS4) = 0;
-	MC(MC_SECURITY_CARVEOUT1_CLIENT_FORCE_INTERNAL_ACCESS0) = 0;
-	MC(MC_SECURITY_CARVEOUT1_CLIENT_FORCE_INTERNAL_ACCESS1) = 0;
-	MC(MC_SECURITY_CARVEOUT1_CLIENT_FORCE_INTERNAL_ACCESS2) = 0;
-	MC(MC_SECURITY_CARVEOUT1_CLIENT_FORCE_INTERNAL_ACCESS3) = 0;
-	MC(MC_SECURITY_CARVEOUT1_CLIENT_FORCE_INTERNAL_ACCESS4) = 0;
-	MC(MC_SECURITY_CARVEOUT1_CFG0) = 0x4000006;
-	MC(MC_SECURITY_CARVEOUT2_BOM) = 0x80020000;
-	MC(MC_SECURITY_CARVEOUT2_BOM_HI) = 0;
-	MC(MC_SECURITY_CARVEOUT2_SIZE_128KB) = 2;
-	MC(MC_SECURITY_CARVEOUT2_CLIENT_ACCESS0) = 0;
-	MC(MC_SECURITY_CARVEOUT2_CLIENT_ACCESS1) = 0;
-	MC(MC_SECURITY_CARVEOUT2_CLIENT_ACCESS2) = 0x3000000;
-	MC(MC_SECURITY_CARVEOUT2_CLIENT_ACCESS3) = 0;
-	MC(MC_SECURITY_CARVEOUT2_CLIENT_ACCESS4) = 0x300;
-	MC(MC_SECURITY_CARVEOUT2_CLIENT_FORCE_INTERNAL_ACCESS0) = 0;
-	MC(MC_SECURITY_CARVEOUT2_CLIENT_FORCE_INTERNAL_ACCESS1) = 0;
-	MC(MC_SECURITY_CARVEOUT2_CLIENT_FORCE_INTERNAL_ACCESS2) = 0;
-	MC(MC_SECURITY_CARVEOUT2_CLIENT_FORCE_INTERNAL_ACCESS3) = 0;
-	MC(MC_SECURITY_CARVEOUT2_CLIENT_FORCE_INTERNAL_ACCESS4) = 0;
-	MC(MC_SECURITY_CARVEOUT2_CFG0) = 0x440167E;
-	MC(MC_SECURITY_CARVEOUT3_BOM) = 0;
-	MC(MC_SECURITY_CARVEOUT3_BOM_HI) = 0;
-	MC(MC_SECURITY_CARVEOUT3_SIZE_128KB) = 0;
-	MC(MC_SECURITY_CARVEOUT3_CLIENT_ACCESS0) = 0;
-	MC(MC_SECURITY_CARVEOUT3_CLIENT_ACCESS1) = 0;
-	MC(MC_SECURITY_CARVEOUT3_CLIENT_ACCESS2) = 0x3000000;
-	MC(MC_SECURITY_CARVEOUT3_CLIENT_ACCESS3) = 0;
-	MC(MC_SECURITY_CARVEOUT3_CLIENT_ACCESS4) = 0x300;
-	MC(MC_SECURITY_CARVEOUT3_CLIENT_FORCE_INTERNAL_ACCESS0) = 0;
-	MC(MC_SECURITY_CARVEOUT3_CLIENT_FORCE_INTERNAL_ACCESS1) = 0;
-	MC(MC_SECURITY_CARVEOUT3_CLIENT_FORCE_INTERNAL_ACCESS2) = 0;
-	MC(MC_SECURITY_CARVEOUT3_CLIENT_FORCE_INTERNAL_ACCESS3) = 0;
-	MC(MC_SECURITY_CARVEOUT3_CLIENT_FORCE_INTERNAL_ACCESS4) = 0;
-	MC(MC_SECURITY_CARVEOUT3_CFG0) = 0x4401E7E;
-	MC(MC_SECURITY_CARVEOUT4_BOM) = 0;
-	MC(MC_SECURITY_CARVEOUT4_BOM_HI) = 0;
-	MC(MC_SECURITY_CARVEOUT4_SIZE_128KB) = 0;
-	MC(MC_SECURITY_CARVEOUT4_CLIENT_ACCESS0) = 0;
-	MC(MC_SECURITY_CARVEOUT4_CLIENT_ACCESS1) = 0;
-	MC(MC_SECURITY_CARVEOUT4_CLIENT_ACCESS2) = 0;
-	MC(MC_SECURITY_CARVEOUT4_CLIENT_ACCESS3) = 0;
-	MC(MC_SECURITY_CARVEOUT4_CLIENT_ACCESS4) = 0;
-	MC(MC_SECURITY_CARVEOUT4_CLIENT_FORCE_INTERNAL_ACCESS0) = 0;
-	MC(MC_SECURITY_CARVEOUT4_CLIENT_FORCE_INTERNAL_ACCESS1) = 0;
-	MC(MC_SECURITY_CARVEOUT4_CLIENT_FORCE_INTERNAL_ACCESS2) = 0;
-	MC(MC_SECURITY_CARVEOUT4_CLIENT_FORCE_INTERNAL_ACCESS3) = 0;
-	MC(MC_SECURITY_CARVEOUT4_CLIENT_FORCE_INTERNAL_ACCESS4) = 0;
-	MC(MC_SECURITY_CARVEOUT4_CFG0) = 0x8F;
-	MC(MC_SECURITY_CARVEOUT5_BOM) = 0;
-	MC(MC_SECURITY_CARVEOUT5_BOM_HI) = 0;
-	MC(MC_SECURITY_CARVEOUT5_SIZE_128KB) = 0;
-	MC(MC_SECURITY_CARVEOUT5_CLIENT_ACCESS0) = 0;
-	MC(MC_SECURITY_CARVEOUT5_CLIENT_ACCESS1) = 0;
-	MC(MC_SECURITY_CARVEOUT5_CLIENT_ACCESS2) = 0;
-	MC(MC_SECURITY_CARVEOUT5_CLIENT_ACCESS3) = 0;
-	MC(MC_SECURITY_CARVEOUT5_CLIENT_ACCESS4) = 0;
-	MC(MC_SECURITY_CARVEOUT5_CLIENT_FORCE_INTERNAL_ACCESS0) = 0;
-	MC(MC_SECURITY_CARVEOUT5_CLIENT_FORCE_INTERNAL_ACCESS1) = 0;
-	MC(MC_SECURITY_CARVEOUT5_CLIENT_FORCE_INTERNAL_ACCESS2) = 0;
-	MC(MC_SECURITY_CARVEOUT5_CLIENT_FORCE_INTERNAL_ACCESS3) = 0;
-	MC(MC_SECURITY_CARVEOUT5_CLIENT_FORCE_INTERNAL_ACCESS4) = 0;
-	MC(MC_SECURITY_CARVEOUT5_CFG0) = 0x8F;
+	mc->mts_carveout_bom = 0;
+	mc->mts_carveout_size_mb = 0;
+	mc->mts_carveout_adr_hi = 0;
+	mc->mts_carveout_reg_ctrl = 1;
+	mc->security_carveout1_bom = 0;
+	mc->security_carveout1_bom_hi = 0;
+	mc->security_carveout1_size_128kb = 0;
+	mc->security_carveout1_ca0 = 0;
+	mc->security_carveout1_ca1 = 0;
+	mc->security_carveout1_ca2 = 0;
+	mc->security_carveout1_ca3 = 0;
+	mc->security_carveout1_ca4 = 0;
+	mc->security_carveout1_cfia0 = 0;
+	mc->security_carveout1_cfia1 = 0;
+	mc->security_carveout1_cfia2 = 0;
+	mc->security_carveout1_cfia3 = 0;
+	mc->security_carveout1_cfia4 = 0;
+	mc->security_carveout1_cfg0 = 0x4000006;
+	mc->security_carveout2_bom = 0x80020000;
+	mc->security_carveout2_bom_hi = 0;
+	mc->security_carveout2_size_128kb = 2;
+	mc->security_carveout2_ca0 = 0;
+	mc->security_carveout2_ca1 = 0;
+	mc->security_carveout2_ca2 = 0x3000000;
+	mc->security_carveout2_ca3 = 0;
+	mc->security_carveout2_ca4 = 0x300;
+	mc->security_carveout2_cfia0 = 0;
+	mc->security_carveout2_cfia1 = 0;
+	mc->security_carveout2_cfia2 = 0;
+	mc->security_carveout2_cfia3 = 0;
+	mc->security_carveout2_cfia4 = 0;
+	mc->security_carveout2_cfg0 = 0x440167e;
+	mc->security_carveout3_bom = 0;
+	mc->security_carveout3_bom_hi = 0;
+	mc->security_carveout3_size_128kb = 0;
+	mc->security_carveout3_ca0 = 0;
+	mc->security_carveout3_ca1 = 0;
+	mc->security_carveout3_ca2 = 0x3000000;
+	mc->security_carveout3_ca3 = 0;
+	mc->security_carveout3_ca4 = 0x300;
+	mc->security_carveout3_cfia0 = 0;
+	mc->security_carveout3_cfia1 = 0;
+	mc->security_carveout3_cfia2 = 0;
+	mc->security_carveout3_cfia3 = 0;
+	mc->security_carveout3_cfia4 = 0;
+	mc->security_carveout3_cfg0 = 0x4401e7e;
+	mc->security_carveout4_bom = 0;
+	mc->security_carveout4_bom_hi = 0;
+	mc->security_carveout4_size_128kb = 0;
+	mc->security_carveout4_ca0 = 0;
+	mc->security_carveout4_ca1 = 0;
+	mc->security_carveout4_ca2 = 0;
+	mc->security_carveout4_ca3 = 0;
+	mc->security_carveout4_ca4 = 0;
+	mc->security_carveout4_cfia0 = 0;
+	mc->security_carveout4_cfia1 = 0;
+	mc->security_carveout4_cfia2 = 0;
+	mc->security_carveout4_cfia3 = 0;
+	mc->security_carveout4_cfia4 = 0;
+	mc->security_carveout4_cfg0 = 0x8f;
+	mc->security_carveout5_bom = 0;
+	mc->security_carveout5_bom_hi = 0;
+	mc->security_carveout5_size_128kb = 0;
+	mc->security_carveout5_ca0 = 0;
+	mc->security_carveout5_ca1 = 0;
+	mc->security_carveout5_ca2 = 0;
+	mc->security_carveout5_ca3 = 0;
+	mc->security_carveout5_ca4 = 0;
+	mc->security_carveout5_cfia0 = 0;
+	mc->security_carveout5_cfia1 = 0;
+	mc->security_carveout5_cfia2 = 0;
+	mc->security_carveout5_cfia3 = 0;
+	mc->security_carveout5_cfia4 = 0;
+	mc->security_carveout5_cfg0 = 0x8f;
 }
 
 void mc_enable_ahb_redirect()
 {
+	struct tegra_mc_regs * const mc = (void *)MC_BASE;
+
 	CLOCK(0x3A4) = (CLOCK(0x3A4) & 0xFFF7FFFF) | 0x80000;
-	//MC(MC_IRAM_REG_CTRL) &= 0xFFFFFFFE;
-	MC(MC_IRAM_BOM) = 0x40000000;
-	MC(MC_IRAM_TOM) = 0x4003F000;
+	//mc->iram_reg_ctrl &= 0xFFFFFFFE;
+	mc->iram_bom = 0x40000000;
+	mc->iram_tom = 0x4003F000;
 }
 
 void mc_disable_ahb_redirect()
 {
-	MC(MC_IRAM_BOM) = 0xFFFFF000;
-	MC(MC_IRAM_TOM) = 0;
+	struct tegra_mc_regs * const mc = (void *)MC_BASE;
+
+	mc->iram_bom = 0xFFFFF000;
+	mc->iram_tom = 0;
 	//Disable IRAM_CFG_WRITE_ACCESS (sticky).
-	//MC(MC_IRAM_REG_CTRL) = MC(MC_IRAM_REG_CTRL) & 0xFFFFFFFE | 1;
+	//mc->iram_reg_ctrl = (mc->iram_reg_ctrl & 0xFFFFFFFE) | 1;
 	CLOCK(0x3A4) &= 0xFFF7FFFF;
 }
 

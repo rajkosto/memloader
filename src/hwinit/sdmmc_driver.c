@@ -72,7 +72,8 @@ static int _sdmmc_set_voltage(sdmmc_t *sdmmc, u32 power)
 		return 0;
 	}
 
-	sdmmc->regs->pwrcon |= TEGRA_MMC_PWRCTL_SD_BUS_POWER;
+	if (power != SDMMC_POWER_OFF)
+		sdmmc->regs->pwrcon |= TEGRA_MMC_PWRCTL_SD_BUS_POWER;
 
 	return 1;
 }
@@ -877,17 +878,8 @@ static int _sdmmc_execute_cmd_inner(sdmmc_t *sdmmc, sdmmc_cmd_t *cmd, sdmmc_req_
 	return res;
 }
 
-static int _sdmmc_config_sdmmc1()
+static void _sdmmc1_config_pads(u32 padMode) //0 for disabled, 1 for 3.3v, higher for 1.8v (schmitt on)
 {
-	//Configure SD card detect.
-	pinmux_set_config(PINMUX_GPIO_Z1, PINMUX_INPUT_ENABLE | PINMUX_PULL_UP | PINMUX_GPIO_PZ1_FUNC_SDMMC1);
-	APB_MISC(APB_MISC_GP_VGPIO_GPIO_MUX_SEL) = 0;
-	gpio_config(GPIO_DECOMPOSE(GPIO_Z1_INDEX), GPIO_MODE_GPIO);
-	gpio_output_enable(GPIO_DECOMPOSE(GPIO_Z1_INDEX), GPIO_OUTPUT_DISABLE);
-	sleep(100);
-	if(!!gpio_read(GPIO_DECOMPOSE(GPIO_Z1_INDEX)))
-		return 0;
-
 	/*
 	* Pinmux config:
 	*  DRV_TYPE = DRIVE_2X
@@ -897,32 +889,44 @@ static int _sdmmc_config_sdmmc1()
 	*  APB_MISC_GP_SDMMCx_CLK_LPBK_CONTROL = SDMMCx_CLK_PAD_E_LPBK for CLK
 	*/
 
-	//Configure SDMMC1 pinmux.
-	APB_MISC(APB_MISC_GP_SDMMC1_CLK_LPBK_CONTROL) = 1;
-	pinmux_set_config(PINMUX_SDMMC1_CLK_INDEX, PINMUX_DRIVE_2X | PINMUX_INPUT_ENABLE | PINMUX_PARKED);
-	pinmux_set_config(PINMUX_SDMMC1_CMD_INDEX, PINMUX_DRIVE_2X | PINMUX_INPUT_ENABLE | PINMUX_PARKED | PINMUX_PULL_UP);
-	pinmux_set_config(PINMUX_SDMMC1_DAT3_INDEX, PINMUX_DRIVE_2X | PINMUX_INPUT_ENABLE | PINMUX_PARKED | PINMUX_PULL_UP);
-	pinmux_set_config(PINMUX_SDMMC1_DAT2_INDEX, PINMUX_DRIVE_2X | PINMUX_INPUT_ENABLE | PINMUX_PARKED | PINMUX_PULL_UP);
-	pinmux_set_config(PINMUX_SDMMC1_DAT1_INDEX, PINMUX_DRIVE_2X | PINMUX_INPUT_ENABLE | PINMUX_PARKED | PINMUX_PULL_UP);
-	pinmux_set_config(PINMUX_SDMMC1_DAT0_INDEX, PINMUX_DRIVE_2X | PINMUX_INPUT_ENABLE | PINMUX_PARKED | PINMUX_PULL_UP);
+	APB_MISC(APB_MISC_GP_SDMMC1_CLK_LPBK_CONTROL) = padMode ? 1 : 0;
+	u32 config = PINMUX_DRIVE_2X | PINMUX_PARKED;
+	if (padMode)
+		config |= PINMUX_INPUT_ENABLE;
+	else
+		config |= PINMUX_TRISTATE;
 
-	//Make sure the SDMMC1 controller is powered.
-	PMC(APBDEV_PMC_NO_IOPOWER) &= ~(1 << 12);
-	//Assume 3.3V SD card voltage.
+	if (padMode > 1)
+		config |= PINMUX_SCHMT;
+
+	pinmux_set_config(PINMUX_SDMMC1_CLK_INDEX, config | PINMUX_SDMMC1_CLK_FUNC_SDMMC1);
+	if (padMode)
+		config |= PINMUX_PULL_UP; //needed for all except CLK
+	
+	pinmux_set_config(PINMUX_SDMMC1_CMD_INDEX, config | PINMUX_SDMMC1_CMD_FUNC_SDMMC1);
+	pinmux_set_config(PINMUX_SDMMC1_DAT3_INDEX, config | PINMUX_SDMMC1_DAT3_FUNC_SDMMC1);
+	pinmux_set_config(PINMUX_SDMMC1_DAT2_INDEX, config | PINMUX_SDMMC1_DAT2_FUNC_SDMMC1);
+	pinmux_set_config(PINMUX_SDMMC1_DAT1_INDEX, config | PINMUX_SDMMC1_DAT1_FUNC_SDMMC1);
+	pinmux_set_config(PINMUX_SDMMC1_DAT0_INDEX, config | PINMUX_SDMMC1_DAT0_FUNC_SDMMC1);
+}
+
+static int _sdmmc_config_sdmmc1()
+{
+	sleep(100); //let the card detect stabilize
+	if(!!gpio_read(GPIO_DECOMPOSE(GPIO_Z1_INDEX)))
+		return 0;
+
+	//Set SDMMC1 IO clamps to default value before changing voltage
 	PMC(APBDEV_PMC_PWR_DET_VAL) |= (1 << 12);
 
-	//Set enable SD card power.
-	pinmux_set_config(PINMUX_DMIC3_CLK_INDEX, PINMUX_INPUT_ENABLE | PINMUX_PULL_DOWN | PINMUX_DMIC3_CLK_FUNC_I2S5A); // that last one ?
-	gpio_config(GPIO_BY_NAME(DMIC3_CLK), GPIO_MODE_GPIO);
-	gpio_write(GPIO_BY_NAME(DMIC3_CLK), GPIO_HIGH);
-	gpio_output_enable(GPIO_BY_NAME(DMIC3_CLK), GPIO_OUTPUT_ENABLE);
-
-	sleep(1000);
-
-	//Enable SD card power.
+	//Reset the SDMMC1 IO voltage back to normal
 	max77620_regulator_set_voltage(REGULATOR_LDO2, 3300000);
-	max77620_regulator_enable(REGULATOR_LDO2, 1);
 
+	//Configure SDMMC1 pinmux to enabled, 3.3v mode
+	_sdmmc1_config_pads(1);
+
+	//Let the power to the SD card flow
+	gpio_write(GPIO_BY_NAME(DMIC3_CLK), GPIO_HIGH);
 	sleep(1000);
 
 	//For good measure.
@@ -986,7 +990,7 @@ int sdmmc_init(sdmmc_t *sdmmc, u32 id, u32 power, u32 bus_width, u32 type, int n
 	return 0;
 }
 
-void sdmmc_end(sdmmc_t *sdmmc)
+void sdmmc_end(sdmmc_t *sdmmc, u32 powerOff)
 {
 	if (!sdmmc->clock_stopped)
 	{
@@ -995,6 +999,21 @@ void sdmmc_end(sdmmc_t *sdmmc)
 		_sdmmc_get_clkcon(sdmmc);
 		clock_sdmmc_disable(sdmmc->id);
 		sdmmc->clock_stopped = 1;
+	}
+
+	//turn off the power completely if applicable
+	if (powerOff && sdmmc->id == SDMMC_1) 
+	{
+		//Turn off the pads
+		_sdmmc1_config_pads(0);
+
+		//Cut the card's power
+		gpio_write(GPIO_BY_NAME(DMIC3_CLK), GPIO_LOW);
+
+		//Put the clamps back to the safe value before changing voltage
+		PMC(APBDEV_PMC_PWR_DET_VAL) |= (1 << 12); 
+		//Set the SDMMC1 IO rail back to 3.3v
+		max77620_regulator_set_voltage(REGULATOR_LDO2, 3300000);
 	}
 }
 
@@ -1043,7 +1062,9 @@ int sdmmc_enable_low_voltage(sdmmc_t *sdmmc)
 	_sdmmc_get_clkcon(sdmmc);
 
 	max77620_regulator_set_voltage(REGULATOR_LDO2, 1800000);
-	PMC(APBDEV_PMC_PWR_DET_VAL) &= ~(1 << 12);
+	sleep(1000); //wait for regulator to change voltage
+	PMC(APBDEV_PMC_PWR_DET_VAL) &= ~(1 << 12); //re-adjust the clamps for 1.8v operation
+	_sdmmc1_config_pads(2); //enable schmitt on inputs
 
 	_sdmmc_autocal_config_offset(sdmmc, SDMMC_POWER_1_8);
 	_sdmmc_autocal_execute(sdmmc, SDMMC_POWER_1_8);

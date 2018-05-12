@@ -25,8 +25,10 @@
 #include "gpio.h"
 #include "pinmux.h"
 #include "max77620.h"
+#include "max7762x.h"
 #include "fuse.h"
 #include "util.h"
+#include "carveout.h"
 
 void config_oscillators()
 {
@@ -76,6 +78,18 @@ void config_gpios()
 	gpio_config(GPIO_BY_NAME(BUTTON_VOL_DOWN), GPIO_MODE_GPIO);
 	gpio_output_enable(GPIO_BY_NAME(BUTTON_VOL_UP), GPIO_OUTPUT_DISABLE);
 	gpio_output_enable(GPIO_BY_NAME(BUTTON_VOL_DOWN), GPIO_OUTPUT_DISABLE);
+
+	//Configure SD card detect pin
+	pinmux_set_config(PINMUX_GPIO_Z1, PINMUX_INPUT_ENABLE | PINMUX_PULL_UP | PINMUX_GPIO_PZ1_FUNC_SDMMC1);
+	gpio_config(GPIO_DECOMPOSE(GPIO_Z1_INDEX), GPIO_MODE_GPIO);
+	gpio_output_enable(GPIO_DECOMPOSE(GPIO_Z1_INDEX), GPIO_OUTPUT_DISABLE);
+	APB_MISC(APB_MISC_GP_VGPIO_GPIO_MUX_SEL) = 0; //use GPIO for all SDMMC 
+
+	//Configure SD power enable pin (powered off by default)
+	pinmux_set_config(PINMUX_DMIC3_CLK_INDEX, PINMUX_INPUT_ENABLE | PINMUX_PULL_DOWN | PINMUX_DMIC3_CLK_FUNC_I2S5A); //not sure about the altfunc here
+	gpio_config(GPIO_BY_NAME(DMIC3_CLK), GPIO_MODE_GPIO);
+	gpio_write(GPIO_BY_NAME(DMIC3_CLK), GPIO_LOW);
+	gpio_output_enable(GPIO_BY_NAME(DMIC3_CLK), GPIO_OUTPUT_ENABLE);
 }
 
 void config_pmc_scratch()
@@ -179,13 +193,44 @@ void config_hw()
 
 	i2c_send_byte(I2C_PWR, 0x3C, MAX77620_REG_SD0, 42); //42 = (1125000 - 600000) / 12500 -> 1.125V
 
+	//Set SDMMC1 IO clamps to default value before changing voltage
+	PMC(APBDEV_PMC_PWR_DET_VAL) |= (1 << 12);
+
+	//Start up the SDMMC1 IO voltage regulator
+	max77620_regulator_set_voltage(REGULATOR_LDO2, 3300000);
+	max77620_regulator_enable(REGULATOR_LDO2, 1);
+
+	//Remove isolation from SDMMC1 and core domain
+	PMC(APBDEV_PMC_NO_IOPOWER) &= ~(1 << 12);
+
 	config_pmc_scratch();
 
 	CLOCK(CLK_RST_CONTROLLER_SCLK_BURST_POLICY) = (CLOCK(CLK_RST_CONTROLLER_SCLK_BURST_POLICY) & 0xFFFF8888) | 0x3333;
 
-	mc_config_carveout();
+	//mc_config_carveout();
+	{
+		const struct sdram_params* sdram_params = sdram_get_params();
+		sdram_init(sdram_params);
+		//TODO: test this with LP0 wakeup.
+		sdram_lp0_save_params(sdram_params);
+	}	
 
-	sdram_init();
-	//TODO: test this with LP0 wakeup.
-	sdram_lp0_save_params(sdram_get_params());
+	/*
+	 * IMPORTANT:
+	 * DO NOT INITIALIZE ANY CARVEOUT BEFORE TZ.
+	 *
+	 * Trust Zone needs to be initialized after the DRAM initialization
+	 * because carveout registers are programmed during DRAM init.
+	 * cbmem_initialize() is dependent on the Trust Zone region
+	 * initialization because CBMEM lives right below the Trust Zone which
+	 * needs to be properly identified.
+	 */
+	trustzone_region_init();
+
+	// Now do various other carveouts
+	gpu_region_init();
+	nvdec_region_init();
+	tsec_region_init();
+	vpr_region_init();
+	print_carveouts();
 }

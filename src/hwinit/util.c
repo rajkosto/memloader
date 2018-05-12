@@ -35,3 +35,10 @@ void exec_cfg(u32 *base, const cfg_op_t *ops, u32 num_ops)
 		base[ops[i].off] = ops[i].val;
 }
 
+int running_on_bpmp(void)
+{
+	static const u32 avp_id = 0xaaaaaaaa;
+	static volatile u32* uptag_ptr = (void *)PG_UP_BASE;
+	
+	return (*uptag_ptr) == avp_id;
+}

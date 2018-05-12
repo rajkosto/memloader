@@ -19,6 +19,7 @@
 #include "clock.h"
 #include "util.h"
 #include "pmc.h"
+#include "flow.h"
 #include "t210.h"
 #include "max77620.h"
 
@@ -66,8 +67,10 @@ int _cluster_pmc_enable_partition(u32 part, u32 toggle)
 
 void cluster_boot_cpu0(u32 entry)
 {
+	struct flow_ctlr * const flow = (void *)FLOW_CTLR_BASE;
+
 	//Set ACTIVE_CLUSER to FAST.
-	FLOW_CTLR(FLOW_CTLR_BPMP_CLUSTER_CONTROL) &= 0xFFFFFFFE;
+	flow->cluster_control &= 0xFFFFFFFE;
 
 	_cluster_enable_power();
 
@@ -105,8 +108,8 @@ void cluster_boot_cpu0(u32 entry)
 	_cluster_pmc_enable_partition(0x4000, 14);
 
 	//Request and wait for RAM repair.
-	FLOW_CTLR(FLOW_CTLR_RAM_REPAIR) = 1;
-	while (!(FLOW_CTLR(FLOW_CTLR_RAM_REPAIR) & 2))
+	flow->ram_repair = 1;
+	while (!(flow->ram_repair & 2))
 		;
 
 	EXCP_VEC(0x100) = 0;

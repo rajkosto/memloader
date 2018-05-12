@@ -2,7 +2,6 @@
 #define _MC_H_
 
 #include "types.h"
-#include "mc_t210.h"
 
 void mc_config_tsec_carveout(u32 bom, u32 size1mb, int lock);
 void mc_config_carveout();

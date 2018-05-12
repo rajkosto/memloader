@@ -19,10 +19,6 @@
 
 #include "types.h"
 
-/*! Flow controller registers. */
-#define FLOW_CTLR_RAM_REPAIR 0x40
-#define FLOW_CTLR_BPMP_CLUSTER_CONTROL 0x98
-
 void cluster_boot_cpu0(u32 entry);
 
 #endif

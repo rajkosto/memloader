@@ -34,7 +34,7 @@ typedef struct _sdmmc_storage_t
 	u8 scr[8];
 } sdmmc_storage_t;
 
-int sdmmc_storage_end(sdmmc_storage_t *storage);
+int sdmmc_storage_end(sdmmc_storage_t *storage, u32 powerOff);
 int sdmmc_storage_read(sdmmc_storage_t *storage, u32 sector, u32 num_sectors, void *buf);
 int sdmmc_storage_write(sdmmc_storage_t *storage, u32 sector, u32 num_sectors, void *buf);
 int sdmmc_storage_init_mmc(sdmmc_storage_t *storage, sdmmc_t *sdmmc, u32 id, u32 bus_width, u32 type);
