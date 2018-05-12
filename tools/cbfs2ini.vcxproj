@@ -256,13 +256,6 @@
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <PostBuildEvent>
-      <Command>$(SignTool) sign /sha1 $(SignCertificate) /t http://timestamp.comodoca.com "$(TargetPath)"
-$(SignTool) sign /sha1 $(SignCertificate) /fd sha256 /tr http://timestamp.comodoca.com/?td=sha256 /td sha256 /as "$(TargetPath)"</Command>
-    </PostBuildEvent>
-    <PostBuildEvent>
-      <Message>Sign binary artefact</Message>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -301,13 +294,6 @@ $(SignTool) sign /sha1 $(SignCertificate) /fd sha256 /tr http://timestamp.comodo
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <PostBuildEvent>
-      <Command>$(SignTool) sign /sha1 $(SignCertificate) /t http://timestamp.comodoca.com "$(TargetPath)"
-$(SignTool) sign /sha1 $(SignCertificate) /fd sha256 /tr http://timestamp.comodoca.com/?td=sha256 /td sha256 /as "$(TargetPath)"</Command>
-    </PostBuildEvent>
-    <PostBuildEvent>
-      <Message>Sign binary artefact</Message>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="cbfs2ini.cpp" />
