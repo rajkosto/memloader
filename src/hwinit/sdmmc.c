@@ -501,7 +501,7 @@ static int _sd_storage_send_if_cond(sdmmc_storage_t *storage)
 	if (!sdmmc_get_rsp(storage->sdmmc, &resp, 4, SDMMC_RSP_TYPE_5))
 		return 0;
 
-	return (resp & 0xFFF) == 0x1AA ? 1 : 0;
+	return (resp & 0xFF) == 0xAA ? 1 : 0;
 }
 
 static int _sd_storage_get_op_cond_once(sdmmc_storage_t *storage, u32 *cond, int is_version_1, int supports_low_voltage)
@@ -544,7 +544,8 @@ static int _sd_storage_get_op_cond(sdmmc_storage_t *storage, int is_version_1, i
 		}
 		if (get_tmr() > timeout)
 			break;
-		sleep(1000);
+
+		sleep(10000); // Needs to be at least 10ms for some SD Cards
 	}
 
 	return 0;
@@ -811,7 +812,8 @@ int sdmmc_storage_init_sd(sdmmc_storage_t *storage, sdmmc_t *sdmmc, u32 id, u32 
 	dbg_print("\n");
 	#endif
 
-	if (bus_width == SDMMC_BUS_WIDTH_4 && storage->scr[1] & 4)
+	// Check if card supports a wider bus and if it's not SD Version 1.0
+	if (bus_width == SDMMC_BUS_WIDTH_4 && (storage->scr[1] & 4) && (storage->scr[0] & 0xF))
 	{
 		if (!_sd_storage_execute_app_cmd_type1(storage, &tmp, SD_APP_SET_BUS_WIDTH, SD_BUS_WIDTH_4, 0, R1_STATE_TRAN))
 			return 0;

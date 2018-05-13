@@ -55,25 +55,26 @@ int sdmmc_get_voltage(sdmmc_t *sdmmc)
 
 static int _sdmmc_set_voltage(sdmmc_t *sdmmc, u32 power)
 {
+	u8 pwr = (power == SDMMC_POWER_1_8) ? TEGRA_MMC_PWRCTL_SD_BUS_VOLTAGE_V1_8 : TEGRA_MMC_PWRCTL_SD_BUS_VOLTAGE_V3_3;
+
 	switch (power)
 	{
 	case SDMMC_POWER_OFF:
 		sdmmc->regs->pwrcon &= ~TEGRA_MMC_PWRCTL_SD_BUS_POWER;
 		break;
 	case SDMMC_POWER_1_8:
-		sdmmc->regs->pwrcon =
-			(sdmmc->regs->pwrcon & TEGRA_MMC_PWRCTL_SD_BUS_VOLTAGE_MASK) |
-			TEGRA_MMC_PWRCTL_SD_BUS_VOLTAGE_V1_8;
-		break;
 	case SDMMC_POWER_3_3:
-		sdmmc->regs->pwrcon = TEGRA_MMC_PWRCTL_SD_BUS_VOLTAGE_V3_3;
+		sdmmc->regs->pwrcon = pwr;		
 		break;
 	default:
 		return 0;
 	}
 
 	if (power != SDMMC_POWER_OFF)
-		sdmmc->regs->pwrcon |= TEGRA_MMC_PWRCTL_SD_BUS_POWER;
+	{
+		pwr |= TEGRA_MMC_PWRCTL_SD_BUS_POWER;
+		sdmmc->regs->pwrcon = pwr;
+	}	
 
 	return 1;
 }
