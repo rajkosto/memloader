@@ -18,7 +18,7 @@
 #include "sdmmc.h"
 #include "mmc.h"
 #include "sd.h"
-#include "util.h"
+#include "timer.h"
 
 #ifdef SDMMC_DEBUGGING
 #include "lib/printk.h"

@@ -14,19 +14,16 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "util.h"
+#include "timer.h"
 #include "t210.h"
 
-void exec_cfg(u32 *base, const cfg_op_t *ops, u32 num_ops)
+u32 get_tmr()
 {
-	for(u32 i = 0; i < num_ops; i++)
-		base[ops[i].off] = ops[i].val;
+	return TMR(TMR_US_OFFS);
 }
 
-int running_on_bpmp(void)
+void sleep(u32 ticks)
 {
-	static const u32 avp_id = 0xaaaaaaaa;
-	static volatile u32* uptag_ptr = (void *)PG_UP_BASE;
-	
-	return (*uptag_ptr) == avp_id;
+	u32 start = TMR(TMR_US_OFFS);
+	while (TMR(TMR_US_OFFS) - start <= ticks) {}
 }

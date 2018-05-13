@@ -59,6 +59,9 @@
 #define REGULATOR_LDO8 12
 #define REGULATOR_MAX 12
 
+u32 max77620_send_byte(u32 regAddr, u8 dataByte);
+u8 max77620_recv_byte(u32 y);
+
 int max77620_regulator_get_status(u32 id);
 int max77620_regulator_config_fps(u32 id);
 int max77620_regulator_set_voltage(u32 id, u32 mv);

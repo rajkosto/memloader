@@ -15,7 +15,6 @@
 
 #include "pinmux.h"
 #include "t210.h"
-#include "util.h"
 #include "gpio.h"
 
 static volatile uint32_t *pinmux_regs = (void *)PINMUX_AUX_BASE;

@@ -2,11 +2,11 @@
 #include "t210.h"
 #include "mc_t210.h"
 #include "clock.h"
-#include "util.h"
+#include "timer.h"
 
 void mc_config_tsec_carveout(u32 bom, u32 size1mb, int lock)
 {
-	struct tegra_mc_regs * const mc = (void *)MC_BASE;
+	struct tegra_mc_regs* const mc = (void *)MC_BASE;
 
 	mc->sec_carveout_bom = bom;
 	mc->sec_carveout_size_mb = size1mb;
@@ -105,37 +105,41 @@ void mc_config_carveout()
 	mc->security_carveout5_cfg0 = 0x8f;
 }
 
+static const u32 ARC_CLK_OVR_ON = 1u << 19;
+
 void mc_enable_ahb_redirect()
 {
-	struct tegra_mc_regs * const mc = (void *)MC_BASE;
+	struct tegra_mc_regs* const mc = (void *)MC_BASE;
 
-	CLOCK(0x3A4) = (CLOCK(0x3A4) & 0xFFF7FFFF) | 0x80000;
-	//mc->iram_reg_ctrl &= 0xFFFFFFFE;
+	CLOCK(CLK_RST_CONTROLLER_LVL2_CLK_GATE_OVRD) |= ARC_CLK_OVR_ON;
+	
+	//mc->iram_reg_ctrl &= ~(1);
 	mc->iram_bom = 0x40000000;
 	mc->iram_tom = 0x4003F000;
 }
 
 void mc_disable_ahb_redirect()
 {
-	struct tegra_mc_regs * const mc = (void *)MC_BASE;
+	struct tegra_mc_regs* const mc = (void *)MC_BASE;
 
 	mc->iram_bom = 0xFFFFF000;
 	mc->iram_tom = 0;
-	//Disable IRAM_CFG_WRITE_ACCESS (sticky).
-	//mc->iram_reg_ctrl = (mc->iram_reg_ctrl & 0xFFFFFFFE) | 1;
-	CLOCK(0x3A4) &= 0xFFF7FFFF;
+	//mc->iram_reg_ctrl |= 1; //Disable IRAM_CFG_WRITE_ACCESS (sticky).
+	
+	CLOCK(CLK_RST_CONTROLLER_LVL2_CLK_GATE_OVRD) &= ~ARC_CLK_OVR_ON;
 }
 
 void mc_enable()
 {
 	CLOCK(CLK_RST_CONTROLLER_CLK_SOURCE_EMC) = (CLOCK(CLK_RST_CONTROLLER_CLK_SOURCE_EMC) & 0x1FFFFFFF) | 0x40000000;
-	//Enable MIPI CAL clock.
-	CLOCK(CLK_RST_CONTROLLER_CLK_ENB_H_SET) = (CLOCK(CLK_RST_CONTROLLER_CLK_ENB_H_SET) & 0xFDFFFFFF) | 0x2000000;
-	//Enable MC clock.
-	CLOCK(CLK_RST_CONTROLLER_CLK_ENB_H_SET) = (CLOCK(CLK_RST_CONTROLLER_CLK_ENB_H_SET) & 0xFFFFFFFE) | 1;
+	//Enable EMC clock.
+	CLOCK(CLK_RST_CONTROLLER_CLK_ENB_H_SET) |= CLK_H_EMC;
+	//Enable MEM clock.
+	CLOCK(CLK_RST_CONTROLLER_CLK_ENB_H_SET) |= CLK_H_MEM;
 	//Enable EMC DLL clock.
-	CLOCK(CLK_RST_CONTROLLER_CLK_ENB_X_SET) = (CLOCK(CLK_RST_CONTROLLER_CLK_ENB_X_SET) & 0xFFFFBFFF) | 0x4000;
-	CLOCK(CLK_RST_CONTROLLER_RST_DEV_H_SET) = 0x2000001; //Clear EMC and MC reset.
+	CLOCK(CLK_RST_CONTROLLER_CLK_ENB_X_SET) |= CLK_X_EMC_DLL;
+	//Clear EMC and MEM reset.
+	CLOCK(CLK_RST_CONTROLLER_RST_DEV_H_SET) = CLK_H_MEM | CLK_H_EMC; 
 	sleep(5);
 
 	mc_disable_ahb_redirect();

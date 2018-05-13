@@ -14,14 +14,14 @@
  *
  */
 
-#include "i2c.h"
 #include "t210.h"
 #include "mc_t210.h"
 #include "clock.h"
 #include "emc.h"
 #include "pmc.h"
-#include "util.h"
+#include "timer.h"
 #include "fuse.h"
+#include "max7762x.h"
 #include "max77620.h"
 #include "sdram_param_t210.h"
 #include "lib/printk.h"
@@ -1075,8 +1075,8 @@ ending_redirect:
 
 void sdram_init(const struct sdram_params* params)
 {
-	i2c_send_byte(I2C_PWR, 0x3C, MAX77620_REG_SD_CFG2, 0x05);
-	i2c_send_byte(I2C_PWR, 0x3C, MAX77620_REG_SD1, 40); //40 = (1000 * 1100 - 600000) / 12500 -> 1.1V
+	max77620_send_byte(MAX77620_REG_SD_CFG2, 0x05);
+	max77620_regulator_set_voltage(REGULATOR_SD1, 1100000); //1.1V
 
 	_sdram_config(params);
 }

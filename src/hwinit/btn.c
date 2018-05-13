@@ -15,10 +15,10 @@
 */
 
 #include "btn.h"
-#include "i2c.h"
 #include "gpio.h"
 #include "pinmux.h"
-#include "t210.h"
+#include "max7762x.h"
+#include "max77620.h"
 
 u32 btn_read()
 {
@@ -27,7 +27,7 @@ u32 btn_read()
 		res |= BTN_VOL_DOWN;
 	if (!gpio_read(GPIO_BY_NAME(BUTTON_VOL_UP)))
 		res |= BTN_VOL_UP;
-	if (i2c_recv_byte(I2C_PWR, 0x3C, 0x15) & 0x4)
+	if (max77620_recv_byte(MAX77620_REG_ONOFFSTAT) & 0x4)
 		res |= BTN_POWER;
 	return res;
 }

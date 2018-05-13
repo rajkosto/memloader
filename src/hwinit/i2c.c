@@ -17,7 +17,7 @@
 #include <string.h>
 
 #include "i2c.h"
-#include "util.h"
+#include "timer.h"
 
 static u32 i2c_addrs[] = { 0x7000C000, 0x7000C400, 0x7000C500, 0x7000C700, 0x7000D000, 0x7000D100 };
 

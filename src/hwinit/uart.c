@@ -16,7 +16,7 @@
 
 #include "uart.h"
 #include "t210.h"
-#include "util.h"
+#include "timer.h"
 
 /* UART A, B, C, D and E. */
 static const u32 uart_baseoff[5] = { 0, 0x40, 0x200, 0x300, 0x400 };

@@ -17,7 +17,7 @@
 #include <string.h>
 
 #include "sdmmc.h"
-#include "util.h"
+#include "timer.h"
 #include "clock.h"
 #include "mmc.h"
 #include "max7762x.h"

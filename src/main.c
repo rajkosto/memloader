@@ -10,9 +10,11 @@
 #include "hwinit/mc.h"
 #include "hwinit/t210.h"
 #include "hwinit/sdmmc.h"
-#include "hwinit/util.h"
+#include "hwinit/timer.h"
 #include "hwinit/cluster.h"
 #include "hwinit/clock.h"
+#include "hwinit/max7762x.h"
+#include "hwinit/max77620.h"
 #include "rcm_usb.h"
 #include "storage.h"
 #include "lib/ff.h"
@@ -25,18 +27,9 @@
 
 static void shutdown_using_pmic()
 {
-    const u8 MAX77620_I2C_PERIPH = I2C_PWR;
-    const u8 MAX77620_I2C_ADDR = 0x3C;
-
-    const u8 MAX77620_REG_ONOFFCNFG1 = 0x41;
-    //const u8 MAX77620_REG_ONOFFCNFG2 = 0x42;
-
-    //const u8 MAX77620_ONOFFCNFG1_SFT_RST = 1u << 7;
-    const u8 MAX77620_ONOFFCNFG1_PWR_OFF = 1u << 1;
-
-    u8 regVal = i2c_recv_byte(MAX77620_I2C_PERIPH, MAX77620_I2C_ADDR, MAX77620_REG_ONOFFCNFG1);
+    u8 regVal = max77620_recv_byte(MAX77620_REG_ONOFFCNFG1);
     regVal |= MAX77620_ONOFFCNFG1_PWR_OFF;
-    i2c_send_byte(MAX77620_I2C_PERIPH, MAX77620_I2C_ADDR, MAX77620_REG_ONOFFCNFG1, regVal);
+    max77620_send_byte(MAX77620_REG_ONOFFCNFG1, regVal);
 }
 
 static int initialize_mount(FATFS* outFS, u8 devNum)

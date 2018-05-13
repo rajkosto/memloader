@@ -2,7 +2,7 @@
 
 #include "hwinit/hwinit.h"
 #include "hwinit/clock.h"
-#include "hwinit/util.h"
+#include "hwinit/timer.h"
 #include "fuse.h"
 
 /* Prototypes for internal commands. */
