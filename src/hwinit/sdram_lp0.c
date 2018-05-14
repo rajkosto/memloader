@@ -13,7 +13,7 @@
  */
 
 #include "t210.h"
-#include "pmc_t210_lp0.h"
+#include "pmc.h"
 #include "sdram_param_t210.h"
 
 /*
