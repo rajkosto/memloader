@@ -8,7 +8,7 @@
             ],
             "defines": [
                 "NDEBUG",
-                "DEBUG_UART_PORT=UART_B"
+                "DEBUG_UART_PORT=UART_A"
             ],
             "compilerPath": "\"${DEVKITARM}/bin/arm-none-eabi-gcc${EXECUTABLE_SUFFIX}\" -march=armv4t -mtune=arm7tdmi -mthumb -mthumb-interwork",
             "cStandard": "c11",

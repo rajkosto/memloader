@@ -29,7 +29,7 @@ CFLAGS = \
 	-std=gnu11 \
 	-I$(dir_source) \
 	-DNDEBUG \
-	-DDEBUG_UART_PORT=UART_B \
+	-DDEBUG_UART_PORT=UART_A \
 	-Wall 
 
 LDFLAGS = -specs=linker.specs -g $(ARCH)
