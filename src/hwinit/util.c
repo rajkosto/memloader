@@ -16,6 +16,8 @@
 
 #include "util.h"
 #include "t210.h"
+#include "max7762x.h"
+#include "max77620.h"
 
 void exec_cfg(u32 *base, const cfg_op_t *ops, u32 num_ops)
 {
@@ -29,4 +31,11 @@ int running_on_bpmp(void)
 	static volatile u32* uptag_ptr = (void *)PG_UP_BASE;
 	
 	return (*uptag_ptr) == avp_id;
+}
+
+void shutdown_using_pmic()
+{
+    u8 regVal = max77620_recv_byte(MAX77620_REG_ONOFFCNFG1);
+    regVal |= MAX77620_ONOFFCNFG1_PWR_OFF;
+    max77620_send_byte(MAX77620_REG_ONOFFCNFG1, regVal);
 }

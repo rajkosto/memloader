@@ -27,5 +27,6 @@ typedef struct _cfg_op_t
 
 void exec_cfg(u32 *base, const cfg_op_t *ops, u32 num_ops);
 int running_on_bpmp(void);
+void shutdown_using_pmic(void);
 
 #endif

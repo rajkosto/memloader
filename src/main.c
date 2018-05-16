@@ -4,7 +4,6 @@
 #include "display/video_fb.h"
 
 #include "hwinit/btn.h"
-#include "hwinit/i2c.h"
 #include "hwinit/hwinit.h"
 #include "hwinit/di.h"
 #include "hwinit/mc.h"
@@ -13,8 +12,7 @@
 #include "hwinit/timer.h"
 #include "hwinit/cluster.h"
 #include "hwinit/clock.h"
-#include "hwinit/max7762x.h"
-#include "hwinit/max77620.h"
+#include "hwinit/util.h"
 #include "rcm_usb.h"
 #include "storage.h"
 #include "lib/ff.h"
@@ -24,13 +22,6 @@
 #include <alloca.h>
 #include <strings.h>
 #define XVERSION 1
-
-static void shutdown_using_pmic()
-{
-    u8 regVal = max77620_recv_byte(MAX77620_REG_ONOFFCNFG1);
-    regVal |= MAX77620_ONOFFCNFG1_PWR_OFF;
-    max77620_send_byte(MAX77620_REG_ONOFFCNFG1, regVal);
-}
 
 static int initialize_mount(FATFS* outFS, u8 devNum)
 {
