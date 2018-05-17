@@ -57,10 +57,12 @@ static void deinitialize_storage()
     for (u32 i=0; i<FF_VOLUMES; i++)
     {
         sdmmc_storage_t* stor = get_storage_for_index((u8)i);
-        if (stor != NULL)
+        if (stor != NULL && stor->sdmmc != NULL)
         {
             if (!sdmmc_storage_end(stor, 1))
                 dbg_print("sdmmc_storage_end for storage idx %u FAILED!\n", i);
+            else
+                memset(stor, 0, sizeof(sdmmc_storage_t));
         }
     }
 }
