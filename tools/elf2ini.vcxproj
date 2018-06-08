@@ -124,39 +124,39 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IntDir>$(SolutionDir)Build\$(Platform)\$(PlatformToolset)\$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)Build\$(ProjectName)\$(Platform)\$(PlatformToolset)\$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)Out\$(Platform)\</OutDir>
     <TargetName>$(ProjectName)d</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Static Debug|Win32'">
-    <IntDir>$(SolutionDir)Build\$(Platform)\$(PlatformToolset)\$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)Build\$(ProjectName)\$(Platform)\$(PlatformToolset)\$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)Out\$(Platform)\</OutDir>
     <TargetName>$(ProjectName)d</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IntDir>$(SolutionDir)Build\$(Platform)\$(PlatformToolset)\$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)Build\$(ProjectName)\$(Platform)\$(PlatformToolset)\$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)Out\$(Platform)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Static Release|Win32'">
-    <IntDir>$(SolutionDir)Build\$(Platform)\$(PlatformToolset)\$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)Build\$(ProjectName)\$(Platform)\$(PlatformToolset)\$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)Out\$(Platform)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IntDir>$(SolutionDir)Build\$(Platform)\$(PlatformToolset)\$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)Build\$(ProjectName)\$(Platform)\$(PlatformToolset)\$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)Out\$(Platform)\</OutDir>
     <TargetName>$(ProjectName)d</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Static Debug|x64'">
-    <IntDir>$(SolutionDir)Build\$(Platform)\$(PlatformToolset)\$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)Build\$(ProjectName)\$(Platform)\$(PlatformToolset)\$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)Out\$(Platform)\</OutDir>
     <TargetName>$(ProjectName)d</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IntDir>$(SolutionDir)Build\$(Platform)\$(PlatformToolset)\$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)Build\$(ProjectName)\$(Platform)\$(PlatformToolset)\$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)Out\$(Platform)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Static Release|x64'">
-    <IntDir>$(SolutionDir)Build\$(Platform)\$(PlatformToolset)\$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)Build\$(ProjectName)\$(Platform)\$(PlatformToolset)\$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)Out\$(Platform)\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
