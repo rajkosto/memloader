@@ -78,7 +78,7 @@ int max77620_regulator_get_status(u32 id)
 	const max77620_regulator_t *reg = &_pmic_regulators[id];
 
 	if (reg->type == REGULATOR_SD)
-		return max77620_recv_byte(MAX77620_REG_STATSD) & reg->status_mask ? 0 : 1;
+		return (max77620_recv_byte(MAX77620_REG_STATSD) & reg->status_mask) ? 0 : 1;
 	else
 		return (max77620_recv_byte(reg->cfg_addr) & 8) ? 1 : 0;
 }
