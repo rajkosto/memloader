@@ -36,10 +36,25 @@ u32 btn_read()
 u32 btn_wait()
 {
 	u32 res = 0, btn = btn_read();
+	int pwr = 0;
+
+	//Power button down, raise a filter.
+	if (btn & BTN_POWER)
+	{
+		pwr = 1;
+		btn &= ~BTN_POWER;
+	}
+
 	do
 	{
 		res = btn_read();
+		//Power button up, remove filter.
+		if (!(res & BTN_POWER) && pwr)
+			pwr = 0;
+		else if (pwr) //Power button still down.
+			res &= ~BTN_POWER;
 	} while (btn == res);
+
 	return res;
 }
 
