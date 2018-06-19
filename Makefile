@@ -4,7 +4,9 @@ ifeq ($(strip $(DEVKITARM)),)
 $(error "Please set DEVKITARM in your environment. export DEVKITARM=<path to>devkitARM")
 endif
 
-include $(DEVKITARM)/base_tools
+CC = $(DEVKITARM)/bin/arm-none-eabi-gcc
+LD = $(DEVKITARM)/bin/arm-none-eabi-ld
+OBJCOPY = $(DEVKITARM)/bin/arm-none-eabi-objcopy
 
 name := memloader
 
