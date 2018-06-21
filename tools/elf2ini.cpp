@@ -150,7 +150,7 @@ int main(int argc, char* argv[])
 		fprintf(outputFile, "[load:PH_%u]\n", (u32)i);
 		fprintf(outputFile, "if=%s\n", inputFilename);
 		fprintf(outputFile, "skip=0x%08llx\n", (u64)phdr.offset);
-		fprintf(outputFile, "count=0x%08llx\n", (u64)phdr.memsz);
+		fprintf(outputFile, "count=0x%08llx\n", (u64)phdr.filesz);
 		fprintf(outputFile, "dst=0x%08llx\n", (u64)phdr.vaddr);
 		fprintf(outputFile, "\n");
 		fflush(outputFile);
