@@ -14,6 +14,7 @@
 #include "hwinit/clock.h"
 #include "hwinit/util.h"
 #include "rcm_usb.h"
+#include "usb_output.h"
 #include "storage.h"
 #include "lib/ff.h"
 #include "lib/decomp.h"
@@ -161,10 +162,11 @@ static NOINLINE int display_file_picker(char* outFilenameBuf, size_t* outFilesiz
             lastFile = files;
             while (lastFile != NULL)
             {
+#ifndef USB_DEBUGGING
                 static const char PREFERRED_FILENAME[] = "memloader.ini";
                 if (!strcasecmp(lastFile->fileName, PREFERRED_FILENAME))
                     break;
-
+#endif
                 currSelection++;
                 lastFile = lastFile->next;
             }
@@ -327,7 +329,7 @@ static NOINLINE int execute_copy_section(IniCopySection_t* sect)
     return retVal;
 }
 
-static NOINLINE int execute_boot_section(IniBootSection_t* sect)
+static NOINLINE int execute_boot_section(IniBootSection_t* sect, unsigned char* usbBuffer, size_t usbBufLen)
 {
     printk("BOOT section '%s'\n\tpc=0x%08x", sect->sectname, sect->pc);
     video_clear_line();
@@ -339,8 +341,69 @@ static NOINLINE int execute_boot_section(IniBootSection_t* sect)
     sleep(1000);
     mc_disable_ahb_redirect();
 
+#ifdef USB_DEBUGGING
+    volatile usb_output_mbox_t* mbox = get_usb_output_mbox_addr();
+    memset((void*)mbox, 0, sizeof(usb_output_mbox_t));
+#endif
+
     cluster_boot_cpu0(sect->pc);
+#ifndef USB_DEBUGGING
     clock_halt_bpmp();
+#else
+    if (usbBuffer == NULL || usbBufLen == 0)
+        clock_halt_bpmp();
+    else
+        memset(usbBuffer, 0, usbBufLen);
+
+    for (;;)
+    {
+        unsigned int currCmd = 0;
+        while ( (currCmd = mbox->statcmd & USB_OUTPUT_COMMAND_MASK) == 0 ) {}
+        mbox->statcmd = currCmd;
+
+        if (currCmd == USB_OUTPUT_COMMAND_HALT_BPMP)
+        {
+            mbox->statcmd |= USB_OUTPUT_STATUS_OP_STARTED | USB_OUTPUT_STATUS_OP_COMPLETE;
+            clock_halt_bpmp();
+            mbox->statcmd &= ~USB_OUTPUT_COMMAND_MASK;
+        }
+        else if (currCmd == USB_OUTPUT_COMMAND_SEND_SYNC)
+        {
+            mbox->statcmd |= USB_OUTPUT_STATUS_OP_STARTED;
+            
+            int totalTransferred = 0;
+            const unsigned char* srcBuf = (const void*)mbox->buf;
+            unsigned int bytesRemaining = mbox->len;
+
+            while (bytesRemaining > 0)
+            {
+                unsigned int outTransferred = 0;
+                unsigned int bytesToTransfer = bytesRemaining;
+                if (bytesToTransfer > usbBufLen)
+                    bytesToTransfer = usbBufLen;
+
+                memcpy(usbBuffer, &srcBuf[totalTransferred], bytesToTransfer);
+                if (bytesToTransfer < usbBufLen)
+                    usbBuffer[bytesToTransfer] = 0;
+
+                int retVal = rcm_usb_device_write_ep1_in_sync(usbBuffer, bytesToTransfer, &outTransferred);
+                if (retVal != 0)
+                {
+                    rcm_usb_device_reset_ep1();
+                    totalTransferred = -totalTransferred;
+                    break;
+                }
+                else
+                {
+                    totalTransferred += outTransferred;
+                    bytesRemaining -= outTransferred;
+                }
+            }
+            mbox->retVal = totalTransferred;
+            mbox->statcmd = (mbox->statcmd & (~USB_OUTPUT_COMMAND_MASK)) | USB_OUTPUT_STATUS_OP_COMPLETE;
+        }
+    }    
+#endif
 
     return 1;
 }
@@ -574,7 +637,7 @@ int main(void)
                 {
                     if (operationFailed) break;
                     
-                    if (!execute_boot_section(&nod->curr))
+                    if (!execute_boot_section(&nod->curr, NULL, 0))
                         operationFailed = true;
                 }
             }
@@ -731,7 +794,7 @@ int main(void)
                     bootSect.sectname = "RCM";
                     bootSect.pc = __builtin_bswap32(*(u32*)(&usbBuffer[0]));
 
-                    execute_boot_section(&bootSect);
+                    execute_boot_section(&bootSect, usbBuffer, USB_BLOCK_SIZE);
                     lastCommand = CMD_NONE;
                 }
                 else

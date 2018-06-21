@@ -100,6 +100,7 @@
 
 /*! Secure boot registers. */
 #define SB_CSR 0x0
+#define SB_PIROM_START 0x4
 #define SB_AA64_RESET_LOW 0x30
 #define SB_AA64_RESET_HIGH 0x34
 

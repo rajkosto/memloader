@@ -108,7 +108,9 @@ void cluster_boot_cpu0(u32 entry)
 	while (!(flow->ram_repair & 2)) {}
 
 	EXCP_VEC(0x100) = 0;
-
+	
+	//Keep bootrom accessible after cluster boot
+	SB(SB_PIROM_START) = 96*1024;	
 	//Set reset vector.
 	SB(SB_AA64_RESET_LOW) = entry | 1;
 	SB(SB_AA64_RESET_HIGH) = 0;
