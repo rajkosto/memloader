@@ -5,8 +5,10 @@
     <ClInclude Include="ScopeGuard.h" />
     <ClInclude Include="RelPath.h" />
     <ClInclude Include="Kip.h" />
+    <ClInclude Include="blz.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="kip1decomp.cpp" />
+    <ClCompile Include="blz.cpp" />
   </ItemGroup>
 </Project>

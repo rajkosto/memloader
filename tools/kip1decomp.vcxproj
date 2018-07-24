@@ -296,9 +296,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="blz.cpp" />
     <ClCompile Include="kip1decomp.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="blz.h" />
     <ClInclude Include="Kip.h" />
     <ClInclude Include="RelPath.h" />
     <ClInclude Include="ScopeGuard.h" />
