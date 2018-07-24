@@ -1,8 +1,6 @@
 #include "Types.h"
-#include "ScopeGuard.h"
 #include "Kip.h"
 #include "blz.h"
-#include <cassert>
 #include <cstdio>
 #include <fstream>
 

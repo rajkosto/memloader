@@ -302,8 +302,6 @@
   <ItemGroup>
     <ClInclude Include="blz.h" />
     <ClInclude Include="Kip.h" />
-    <ClInclude Include="RelPath.h" />
-    <ClInclude Include="ScopeGuard.h" />
     <ClInclude Include="Types.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
