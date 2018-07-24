@@ -5,96 +5,56 @@
 #include <cstdio>
 #include <fstream>
 
-ByteVector kip1_blz_decompress(const unsigned char* compData, unsigned int compDataLen)
+//from https://github.com/SciresM/hactool/blob/master/kip.c which is exactly how kernel does it, thanks SciresM!
+bool kip1_blz_uncompress(unsigned char* dataBuf, unsigned int compSize)
 {
-	unsigned int compressed_size, init_index, uncompressed_addl_size;
+	u32* hdr_end = (u32*)&dataBuf[compSize];
+
+	u32 addl_size = hdr_end[-1];
+	u32 header_size = hdr_end[-2];
+	u32 cmp_and_hdr_size = hdr_end[-3];
+
+	unsigned char* cmp_start = (unsigned char *)(hdr_end) - cmp_and_hdr_size;
+	u32 cmp_ofs = cmp_and_hdr_size - header_size;
+	u32 out_ofs = cmp_and_hdr_size + addl_size;
+
+	while (out_ofs)
 	{
-		struct BlzFooter
-		{
-			unsigned int compressed_size;
-			unsigned int init_index;
-			unsigned int uncompressed_addl_size;
-		} footer;
-
-		if (compDataLen < sizeof(BlzFooter))
-			throw std::runtime_error("Compressed data not large enough for BLZ footer!");
-
-		memcpy(&footer, compData+(compDataLen-sizeof(BlzFooter)), sizeof(BlzFooter));
-		compressed_size = footer.compressed_size;
-		init_index = footer.init_index;
-		uncompressed_addl_size = footer.uncompressed_addl_size;
-	}
-
-	ByteVector compressed(compDataLen);
-	if (compressed.size() > 0)
-		memcpy(&compressed[0], compData, compDataLen);
-
-	ByteVector decompressed(compDataLen + uncompressed_addl_size, 0);
-	if (compDataLen > 0)
-		memcpy(&decompressed[0], compData, compDataLen);
-
-	unsigned int decompressed_size = (u32)decompressed.size();
-    if (compDataLen != compressed_size)
-	{
-		if (compDataLen < compressed_size)
-			throw std::logic_error("Not enough BLZ compressed bytes supplied");
-
-		auto numSkipBytes = compDataLen - compressed_size;
-		memmove(&compressed[0], &compressed[numSkipBytes], compressed.size()-numSkipBytes);
-		compressed.resize(compressed.size() - numSkipBytes);
-	}
-	if ((compressed_size + uncompressed_addl_size) == 0)
-		return ByteVector();
-
-	unsigned int index = compressed_size - init_index;
-	unsigned int outindex = decompressed_size;
-    while (outindex > 0)
-	{
-		index -= 1;
-		unsigned char control = compressed[index];
+		unsigned char control = cmp_start[--cmp_ofs];
 		for (unsigned int i=0; i<8; i++)
 		{
-            if ((control & 0x80) != 0)
+			if (control & 0x80)
 			{
-				if (index < 2)
-					throw std::runtime_error("Compression out of bounds1 !");
+				if (cmp_ofs < 2)
+					return false; //out of bounds
 
-				index -= 2;
-				unsigned int segmentoffset = (unsigned int)(compressed[index]) | ((unsigned int)(compressed[index+1]) << 8);
-				unsigned int segmentsize = ((segmentoffset >> 12) & 0xF) + 3;
-				segmentoffset &= 0x0FFF;
-				segmentoffset += 2;
-				if (outindex < segmentsize)
-					throw std::runtime_error("Compression out of bounds2 !");
+				cmp_ofs -= 2;
+				u16 seg_val = ((unsigned int)(cmp_start[cmp_ofs+1]) << 8) | cmp_start[cmp_ofs];
+				u32 seg_size = ((seg_val >> 12) & 0xF) + 3;
+				u32 seg_ofs = (seg_val & 0x0FFF) + 3;
+				if (out_ofs < seg_size) // Kernel restricts segment copy to stay in bounds.
+					seg_size = out_ofs;
 
-                for (unsigned int j=0; j<segmentsize; j++)
-				{
-					if ((outindex + segmentoffset) >= decompressed_size)
-						throw std::runtime_error("Compression out of bounds3 !");
+				out_ofs -= seg_size;
 
-					unsigned char data = decompressed[outindex+segmentoffset];
-					outindex -= 1;
-					decompressed[outindex] = data;
-				}
+				for (unsigned int j=0; j<seg_size; j++)
+					cmp_start[out_ofs + j] = cmp_start[out_ofs + j + seg_ofs];
 			}
-            else
+			else
 			{
-				if (outindex < 1)
-					throw std::runtime_error("Compression out of bounds4 !");
+				// Copy directly.
+				if (cmp_ofs < 1)
+					return false; //out of bounds
 
-				outindex -= 1;
-				index -= 1;
-				decompressed[outindex] = compressed[index];
+				cmp_start[--out_ofs] = cmp_start[--cmp_ofs];
 			}
-
 			control <<= 1;
-			control &= 0xFF;
-			if (outindex == 0)
-				break;
+			if (out_ofs == 0) // blz works backwards, so if it reaches byte 0, it's done
+				return true;
 		}
 	}
 
-	return decompressed;
+	return true;
 }
 
 /*----------------------------------------------------------------------------*/
@@ -417,8 +377,8 @@ int main(int argc, char* argv[])
 		}
 		else
 		{
-			ByteVector compData(info.CompSz);
-			inFile.read((char*)&compData[0], compData.size());
+			segmentData.resize(info.DecompSz, 0);
+			inFile.read((char*)&segmentData[0], info.CompSz);
 			if (inFile.fail())
 			{
 				printf("FAIL!\n");
@@ -426,11 +386,10 @@ int main(int argc, char* argv[])
 				return -3;
 			}
 
-			try { segmentData = kip1_blz_decompress(&compData[0], (u32)compData.size()); }
-			catch (std::exception& err)
+			if (!kip1_blz_uncompress(&segmentData[0], info.CompSz))
 			{
 				printf("FAIL!\n");
-				fprintf(stderr, "Error decompressing BLZ data for section %u from input file '%s', err: %s\n", i, inputFilename, err.what());
+				fprintf(stderr, "Error decompressing BLZ data for section %u from input file '%s'\n", i, inputFilename);
 				return -3;
 			}
 			printf("OK!\n");
