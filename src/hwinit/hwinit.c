@@ -118,7 +118,7 @@ void mbist_workaround()
 	I2S(0x388) &= 0xFFFFFFFE;
 	I2S(0x4A0) |= 0x400;
 	I2S(0x488) &= 0xFFFFFFFE;
-	DISPLAY_A(0xCF8) |= 4;
+	DISPLAY_A(_DIREG(DC_COM_DSC_TOP_CTL)) |= 4;
 	VIC(0x8C) = 0xFFFFFFFF;
 	usleep(2);
 
@@ -157,7 +157,7 @@ void config_hw()
 	mc_enable();
 
 	config_oscillators();
-	APB_MISC(0x40) = 0;
+	APB_MISC(APB_MISC_PP_PINMUX_GLOBAL) = 0;
 	config_gpios();
 
 #ifdef DEBUG_UART_PORT

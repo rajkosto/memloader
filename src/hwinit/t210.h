@@ -91,8 +91,12 @@
 #define MIPI_CAL(off) _REG(MIPI_CAL_BASE, off)
 #define I2S(off) _REG(I2S_BASE, off)
 
+/*! Misc registers. */
+#define APB_MISC_PP_PINMUX_GLOBAL 0x40
+
 /*! System registers. */
 #define AHB_ARBITRATION_XBAR_CTRL 0xE0
+#define AHB_AHB_SPARE_REG 0x110
 
 /*! APB MISC registers. */
 #define APB_MISC_GP_SDMMC1_CLK_LPBK_CONTROL 0x8D4
