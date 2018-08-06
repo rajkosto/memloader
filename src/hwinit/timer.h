@@ -21,8 +21,10 @@
 
 #define TMR_US_OFFS     0x10
 #define TMR_US_CFG_OFFS 0x14
+#define APBDEV_RTC_SECONDS 0x8
 
-u32 get_tmr();
+u32 get_tmr_us();
+u32 get_tmr_s();
 void sleep(u32 ticks);
 
 #endif

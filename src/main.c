@@ -153,7 +153,7 @@ static NOINLINE int display_file_picker(char* outFilenameBuf, size_t* outFilesiz
         int startRow = video_get_row();
         int startCol = video_get_col();
 
-        u32 lastTime = get_tmr();
+        u32 lastTime = get_tmr_us();
         u32 currTime = lastTime;
         u32 btnReadTime = currTime;
         if (currSelection < 0)
@@ -227,7 +227,7 @@ static NOINLINE int display_file_picker(char* outFilenameBuf, size_t* outFilesiz
                 lastFile = lastFile->next;
             }
 
-            currTime = get_tmr();
+            currTime = get_tmr_us();
             if (pwr_pressed)
             {
                 if (selectedFile == NULL)

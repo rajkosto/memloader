@@ -232,7 +232,7 @@ static int _mmc_storage_get_op_cond_inner(sdmmc_storage_t *storage, u32 *pout, u
 
 static int _mmc_storage_get_op_cond(sdmmc_storage_t *storage, u32 power)
 {
-	u32 timeout = get_tmr() + 1500000;
+	u32 timeout = get_tmr_us() + 1500000;
 
 	while (1)
 	{
@@ -245,7 +245,7 @@ static int _mmc_storage_get_op_cond(sdmmc_storage_t *storage, u32 power)
 				storage->has_sector_access = 1;
 			return 1;
 		}
-		if (get_tmr() > timeout)
+		if (get_tmr_us() > timeout)
 			break;
 		sleep(1000);
 	}
@@ -617,7 +617,7 @@ static int _sd_storage_get_op_cond_once(sdmmc_storage_t *storage, u32 *cond, int
 
 static int _sd_storage_get_op_cond(sdmmc_storage_t *storage, int is_version_1, int supports_low_voltage)
 {
-	u32 timeout = get_tmr() + 1500000;
+	u32 timeout = get_tmr_us() + 1500000;
 
 	while (1)
 	{
@@ -643,7 +643,7 @@ static int _sd_storage_get_op_cond(sdmmc_storage_t *storage, int is_version_1, i
 
 			return 1;
 		}
-		if (get_tmr() > timeout)
+		if (get_tmr_us() > timeout)
 			break;
 
 		sleep(10000); // Needs to be at least 10ms for some SD Cards
@@ -657,7 +657,7 @@ static int _sd_storage_get_rca(sdmmc_storage_t *storage)
 	sdmmc_cmd_t cmdbuf;
 	sdmmc_init_cmd(&cmdbuf, SD_SEND_RELATIVE_ADDR, 0, SDMMC_RSP_TYPE_4, 0);
 
-	u32 timeout = get_tmr() + 1500000;
+	u32 timeout = get_tmr_us() + 1500000;
 
 	while (1)
 	{
@@ -674,7 +674,7 @@ static int _sd_storage_get_rca(sdmmc_storage_t *storage)
 			return 1;
 		}
 
-		if (get_tmr() > timeout)
+		if (get_tmr_us() > timeout)
 			break;
 		sleep(1000);
 	}

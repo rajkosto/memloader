@@ -31,8 +31,8 @@ static u32 _display_ver = 0;
 
 static void _display_dsi_wait(u32 timeout, u32 off, u32 mask)
 {
-	u32 end = get_tmr() + timeout;
-	while (get_tmr() < end && (DSI(off) & mask)) {}
+	u32 end = get_tmr_us() + timeout;
+	while (get_tmr_us() < end && (DSI(off) & mask)) {}
 	sleep(5);
 }
 

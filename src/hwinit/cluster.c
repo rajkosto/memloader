@@ -43,19 +43,19 @@ int _cluster_pmc_enable_partition(u32 part, u32 toggle)
 	if (PMC(APBDEV_PMC_PWRGATE_STATUS) & part)
 		return 1;
 
-	u32 startTime = get_tmr();
+	u32 startTime = get_tmr_us();
 	while (PMC(APBDEV_PMC_PWRGATE_TOGGLE) & 0x100)
 	{
-		if (get_tmr() - startTime >= 5000) //only wait for 5ms
+		if (get_tmr_us() - startTime >= 5000) //only wait for 5ms
 			return 0;
 	}
 
 	PMC(APBDEV_PMC_PWRGATE_TOGGLE) = toggle | 0x100;
 
-	startTime = get_tmr();
+	startTime = get_tmr_us();
 	while ((PMC(APBDEV_PMC_PWRGATE_STATUS) & part) == 0)
 	{
-		if (get_tmr() - startTime >= 5000) //only wait for 5ms
+		if (get_tmr_us() - startTime >= 5000) //only wait for 5ms
 			return 0;
 	}
 

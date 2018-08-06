@@ -17,13 +17,18 @@
 #include "timer.h"
 #include "t210.h"
 
-u32 get_tmr()
+u32 get_tmr_us()
 {
 	return TMR(TMR_US_OFFS);
 }
 
+u32 get_tmr_s()
+{
+	return RTC(APBDEV_RTC_SECONDS);
+}
+
 void sleep(u32 ticks)
 {
-	u32 start = TMR(TMR_US_OFFS);
-	while (TMR(TMR_US_OFFS) - start <= ticks) {}
+	u32 start = get_tmr_us();
+	while (get_tmr_us() - start <= ticks) {}
 }

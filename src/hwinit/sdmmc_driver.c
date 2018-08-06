@@ -157,20 +157,20 @@ static int _sdmmc_wait_type4(sdmmc_t *sdmmc)
 	sdmmc->regs->field_1B0 |= 0x80000000;
 	_sdmmc_get_clkcon(sdmmc);
 
-	u32 timeout = get_tmr() + 5000;
+	u32 timeout = get_tmr_us() + 5000;
 	while (sdmmc->regs->field_1B0 & 0x80000000)
 	{
-		if (get_tmr() > timeout)
+		if (get_tmr_us() > timeout)
 		{
 			res = 0;
 			goto out;
 		}
 	}
 
-	timeout = get_tmr() + 10000;
+	timeout = get_tmr_us() + 10000;
 	while (sdmmc->regs->field_1BC & 0x80000000)
 	{
-		if (get_tmr() > timeout)
+		if (get_tmr_us() > timeout)
 		{
 			res = 0;
 			goto out;
@@ -372,8 +372,8 @@ static void _sdmmc_reset(sdmmc_t *sdmmc)
 	sdmmc->regs->swrst |= 
 		TEGRA_MMC_SWRST_SW_RESET_FOR_CMD_LINE | TEGRA_MMC_SWRST_SW_RESET_FOR_DAT_LINE;
 	_sdmmc_get_clkcon(sdmmc);
-	u32 timeout = get_tmr() + 2000000;
-	while (sdmmc->regs->swrst << 29 >> 30 && get_tmr() < timeout)
+	u32 timeout = get_tmr_us() + 2000000;
+	while (sdmmc->regs->swrst << 29 >> 30 && get_tmr_us() < timeout)
 		;
 }
 
@@ -381,9 +381,9 @@ static int _sdmmc_wait_prnsts_type0(sdmmc_t *sdmmc, u32 wait_dat)
 {
 	_sdmmc_get_clkcon(sdmmc);
 
-	u32 timeout = get_tmr() + 2000000;
+	u32 timeout = get_tmr_us() + 2000000;
 	while(sdmmc->regs->prnsts & 1) //CMD inhibit.
-		if (get_tmr() > timeout)
+		if (get_tmr_us() > timeout)
 		{
 			_sdmmc_reset(sdmmc);
 			return 0;
@@ -391,9 +391,9 @@ static int _sdmmc_wait_prnsts_type0(sdmmc_t *sdmmc, u32 wait_dat)
 
 	if (wait_dat)
 	{
-		timeout = get_tmr() + 2000000;
+		timeout = get_tmr_us() + 2000000;
 		while (sdmmc->regs->prnsts & 2) //DAT inhibit.
-			if (get_tmr() > timeout)
+			if (get_tmr_us() > timeout)
 			{
 				_sdmmc_reset(sdmmc);
 				return 0;
@@ -407,9 +407,9 @@ static int _sdmmc_wait_prnsts_type1(sdmmc_t *sdmmc)
 {
 	_sdmmc_get_clkcon(sdmmc);
 
-	u32 timeout = get_tmr() + 2000000;
+	u32 timeout = get_tmr_us() + 2000000;
 	while (!(sdmmc->regs->prnsts & 0x100000)) //DAT0 line level.
-		if (get_tmr() > timeout)
+		if (get_tmr_us() > timeout)
 		{
 			_sdmmc_reset(sdmmc);
 			return 0;
@@ -505,8 +505,8 @@ static int _sdmmc_config_tuning_once(sdmmc_t *sdmmc, u32 cmd)
 	sdmmc->regs->clkcon |= TEGRA_MMC_CLKCON_SD_CLOCK_ENABLE;
 	_sdmmc_get_clkcon(sdmmc);
 
-	u32 timeout = get_tmr() + 5000;
-	while (get_tmr() < timeout)
+	u32 timeout = get_tmr_us() + 5000;
+	while (get_tmr_us() < timeout)
 	{
 		if (sdmmc->regs->norintsts & 0x20)
 		{
@@ -569,10 +569,10 @@ static int _sdmmc_enable_internal_clock(sdmmc_t *sdmmc)
 	//Enable internal clock and wait till it is stable.
 	sdmmc->regs->clkcon |= TEGRA_MMC_CLKCON_INTERNAL_CLOCK_ENABLE;
 	_sdmmc_get_clkcon(sdmmc);
-	u32 timeout = get_tmr() + 2000000;
+	u32 timeout = get_tmr_us() + 2000000;
 	while (!(sdmmc->regs->clkcon & TEGRA_MMC_CLKCON_INTERNAL_CLOCK_STABLE))
 	{
-		if (get_tmr() > timeout)
+		if (get_tmr_us() > timeout)
 			return 0;
 	}
 
@@ -645,10 +645,10 @@ static void _sdmmc_autocal_execute(sdmmc_t *sdmmc, u32 power)
 	_sdmmc_get_clkcon(sdmmc);
 	sleep(1);
 
-	u32 timeout = get_tmr() + 10000;
+	u32 timeout = get_tmr_us() + 10000;
 	while (sdmmc->regs->autocalcfg & 0x80000000)
 	{
-		if (get_tmr() > timeout)
+		if (get_tmr_us() > timeout)
 		{
 			//In case autocalibration fails, we load suggested standard values.
 			_sdmmc_pad_config_fallback(sdmmc, power);
@@ -706,13 +706,13 @@ static int _sdmmc_wait_request(sdmmc_t *sdmmc)
 {
 	_sdmmc_get_clkcon(sdmmc);
 
-	u32 timeout = get_tmr() + 2000000;
+	u32 timeout = get_tmr_us() + 2000000;
 	while (1)
 	{
 		int res = _sdmmc_check_mask_interrupt(sdmmc, 0, TEGRA_MMC_NORINTSTS_CMD_COMPLETE);
 		if (res == SDMMC_MASKINT_MASKED)
 			break;
-		if (res != SDMMC_MASKINT_NOERROR || get_tmr() > timeout)
+		if (res != SDMMC_MASKINT_NOERROR || get_tmr_us() > timeout)
 		{
 			_sdmmc_reset(sdmmc);
 			return 0;
@@ -813,7 +813,7 @@ static int _sdmmc_update_dma(sdmmc_t *sdmmc)
 	do
 	{
 		blkcnt = sdmmc->regs->blkcnt;
-		u32 timeout = get_tmr() + 1500000;
+		u32 timeout = get_tmr_us() + 1500000;
 		do
 		{
 			int res = 0;
@@ -839,7 +839,7 @@ static int _sdmmc_update_dma(sdmmc_t *sdmmc)
 				_sdmmc_reset(sdmmc);
 				return 0;
 			}
-		} while (get_tmr() < timeout);
+		} while (get_tmr_us() < timeout);
 	} while (sdmmc->regs->blkcnt != blkcnt);
 
 	_sdmmc_reset(sdmmc);

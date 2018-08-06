@@ -18,13 +18,14 @@
 #include "tsec.h"
 #include "clock.h"
 #include "t210.h"
+#include "timer.h"
 
 static int _tsec_dma_wait_idle()
 {
-	u32 timeout = TMR(0x10) + 10000000;
+	u32 timeout = get_tmr_us() + 10000000;
 
 	while (!(TSEC(0x1118) & 2))
-		if (TMR(0x10) > timeout)
+		if (get_tmr_us() > timeout)
 			return 0;
 
 	return 1;
@@ -122,9 +123,9 @@ int tsec_query(u32 carveout, u8 *dst, u32 rev)
 		res = -3;
 		goto out;
 	}
-	u32 timeout = TMR(0x10) + 2000000;
+	u32 timeout = get_tmr_us() + 2000000;
 	while (!TSEC(0x1044))
-		if (TMR(0x10) > timeout)
+		if (get_tmr_us() > timeout)
 		{
 			res = -4;
 			goto out;
