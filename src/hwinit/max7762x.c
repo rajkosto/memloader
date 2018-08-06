@@ -113,7 +113,7 @@ int max77620_regulator_set_voltage(u32 id, u32 mv)
 	u8 val = max77620_recv_byte(reg->volt_addr);
 	val = (val & ~reg->volt_mask) | (mult & reg->volt_mask);
 	max77620_send_byte(reg->volt_addr, val);
-	sleep(1000);
+	usleep(1000);
 
 	return 1;
 }
@@ -133,7 +133,7 @@ int max77620_regulator_enable(u32 id, int enable)
 		val &= ~reg->enable_mask;
 
 	max77620_send_byte(addr, val);
-	sleep(1000);
+	usleep(1000);
 	
 	return 1;
 }

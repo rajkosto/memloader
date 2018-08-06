@@ -60,7 +60,7 @@ u32 btn_wait()
 
 u32 btn_wait_timeout(u32 time_ms)
 {
-	u32 timeout = get_tmr_us() + (time_ms * 1000);
+	u32 timeout = get_tmr_ms() + time_ms;
 	u32 res = btn_read();
 	u32 btn = res;
 
@@ -69,7 +69,7 @@ u32 btn_wait_timeout(u32 time_ms)
 		//Keep the new value until timeout is reached
 		if (btn == res)
 			res = btn_read();
-	} while (get_tmr_us() < timeout);
+	} while (get_tmr_ms() < timeout);
 
 	return res;
 }

@@ -52,7 +52,7 @@ static void sdram_configure_pmc(const struct sdram_params *param,
 {
 	/* VDDP Select */
 	regs->vddp_sel = param->PmcVddpSel;
-	sleep(param->PmcVddpSelWait);
+	usleep(param->PmcVddpSelWait);
 
 	/* Set DDR pad voltage */
 	writebits(param->PmcDdrPwr, &regs->ddr_pwr, PMC_DDR_PWR_VAL_MASK);
@@ -73,7 +73,7 @@ static void sdram_set_ddr_control(const struct sdram_params *param,
 	/* Deassert HOLD_CKE_LOW */
 	ddrcntrl &= ~PMC_CMD_HOLD_LOW_BR00_11_MASK;
 	regs->ddr_cntrl = ddrcntrl;
-	sleep(param->PmcDdrCntrlWait);
+	usleep(param->PmcDdrCntrlWait);
 }
 
 /* Start PLLM for SDRAM. */
@@ -110,25 +110,25 @@ static void clock_sdram(u32 m, u32 n, u32 p, u32 setup, u32 kvco, u32 kcp,
 
 	CLOCK(CLK_RST_CONTROLLER_PLLM_BASE) |= PLL_BASE_ENABLE;
 	/* stable_time is required, before we can start to check lock. */
-	sleep(stable_time);
+	usleep(stable_time);
 
 	while (!(CLOCK(CLK_RST_CONTROLLER_PLLM_BASE) & PLL_BASE_LOCK))
-		sleep(1);
+		usleep(1);
 
 	/*
 	 * After PLLM reports being locked, we have to delay 10us before
 	 * enabling PLLM_OUT.
 	 */
-	sleep(10);
+	usleep(10);
 
 	/* Enable and start MEM(MC) and EMC. */
 	CLOCK(CLK_RST_CONTROLLER_CLK_ENB_H_SET) = CLK_H_MEM | CLK_H_EMC;
 	/* Give clocks time to stabilize. */
-	sleep(IO_STABILIZATION_DELAY);
+	usleep(IO_STABILIZATION_DELAY);
 	CLOCK(CLK_RST_CONTROLLER_RST_DEV_H_CLR) = CLK_H_MEM | CLK_H_EMC;
 
 	CLOCK(CLK_RST_CONTROLLER_CLK_SOURCE_EMC) = emc_source;
-	sleep(IO_STABILIZATION_DELAY);
+	usleep(IO_STABILIZATION_DELAY);
 }
 
 static void sdram_start_clocks(const struct sdram_params *param,
@@ -163,7 +163,7 @@ static void sdram_start_clocks(const struct sdram_params *param,
 		CLOCK(CLK_RST_CONTROLLER_PLLM_MISC2) = param->ClkRstControllerPllmMisc2Override;
 
 	/* Wait for enough time for clk switch to take place */
-	sleep(5);
+	usleep(5);
 
 	CLOCK(CLK_RST_CONTROLLER_CLK_ENB_W_CLR) = param->ClearClk2Mc1;
 }
@@ -203,7 +203,7 @@ static void sdram_set_pad_macros(const struct sdram_params *param,
 	/* Trigger timing update so above writes take place */
 	sdram_trigger_emc_timing_update(regs);
 	/* Add a wait to ensure the regulators settle */
-	sleep(10);
+	usleep(10);
 
 	regs->dbg = param->EmcDbg | (param->EmcDbgWriteMux & WRITE_MUX_ACTIVE);
 
@@ -571,7 +571,7 @@ static void sdram_init_emc(const struct sdram_params *param,
 
 	regs->auto_cal_interval = param->EmcAutoCalInterval;
 	regs->auto_cal_config = param->EmcAutoCalConfig;
-	sleep(param->EmcAutoCalWait);
+	usleep(param->EmcAutoCalWait);
 }
 
 static void sdram_set_emc_timing(const struct sdram_params *param,
@@ -701,7 +701,7 @@ static void sdram_rel_dpd(const struct sdram_params *param,
 	dpd3_val = (param->EmcPmcScratch1 & 0x3FFFFFFF) | DPD_OFF;
 	dpd3_val_sel_dpd = dpd3_val & 0xCFFF0000;
 	regs->io_dpd3_req = dpd3_val_sel_dpd;
-	sleep(param->PmcIoDpd3ReqWait);
+	usleep(param->PmcIoDpd3ReqWait);
 }
 
 /* Program DPD3/DPD4 regs (coldboot path) */
@@ -715,22 +715,22 @@ static void sdram_set_dpd(const struct sdram_params *param,
 	dpd3_val = (param->EmcPmcScratch1 & 0x3FFFFFFF) | DPD_ON;
 	dpd3_val_sel_dpd = (dpd3_val ^ 0x0000FFFF) & 0xC000FFFF;
 	regs->io_dpd3_req = dpd3_val_sel_dpd;
-	sleep(param->PmcIoDpd3ReqWait);
+	usleep(param->PmcIoDpd3ReqWait);
 
 	dpd4_val = dpd3_val;
 	/* Disable e_dpd_vttgen */
 	dpd4_val_e_dpd_vttgen = (dpd4_val ^ 0x3FFF0000) & 0xFFFF0000;
 	regs->io_dpd4_req = dpd4_val_e_dpd_vttgen;
-	sleep(param->PmcIoDpd4ReqWait);
+	usleep(param->PmcIoDpd4ReqWait);
 
 	/* Disable e_dpd_bg */
 	dpd4_val_e_dpd = (dpd4_val ^ 0x0000FFFF) & 0xC000FFFF;
 	regs->io_dpd4_req = dpd4_val_e_dpd;
-	sleep(param->PmcIoDpd4ReqWait);
+	usleep(param->PmcIoDpd4ReqWait);
 
 	regs->weak_bias = 0;
 	/* Add a wait to make sure clock switch takes place */
-	sleep(1);
+	usleep(1);
 }
 
 static void sdram_set_clock_enable_signal(const struct sdram_params *param,
@@ -751,7 +751,7 @@ static void sdram_set_clock_enable_signal(const struct sdram_params *param,
 		 * through. Wait an additional 200us here as per NVIDIA.
 		 */
 		dummy |= regs->pin;
-		sleep(param->EmcPinExtraWait + 200);
+		usleep(param->EmcPinExtraWait + 200);
 
 		/* Deassert reset */
 		regs->pin |= EMC_PIN_RESET_INACTIVE;
@@ -761,7 +761,7 @@ static void sdram_set_clock_enable_signal(const struct sdram_params *param,
 		 * through. Wait an additional 2000us here as per NVIDIA.
 		 */
 		dummy |= regs->pin;
-		sleep(param->EmcPinExtraWait + 2000);
+		usleep(param->EmcPinExtraWait + 2000);
 	}
 
 	/* Enable clock enable signal */
@@ -769,7 +769,7 @@ static void sdram_set_clock_enable_signal(const struct sdram_params *param,
 
 	/* Dummy read of PIN register to ensure final write goes through */
 	dummy |= regs->pin;
-	sleep(param->EmcPinProgramWait);
+	usleep(param->EmcPinProgramWait);
 
 	if (!dummy)
 	{
@@ -788,7 +788,7 @@ static void sdram_set_clock_enable_signal(const struct sdram_params *param,
 
 	/* On coldboot w/LPDDR2/3, wait 200 uSec after asserting CKE high */
 	if (param->MemoryType == NvBootMemoryType_LpDdr2)
-		sleep(param->EmcPinExtraWait + 200);
+		usleep(param->EmcPinExtraWait + 200);
 }
 
 static void sdram_init_lpddr3(const struct sdram_params *param,
@@ -799,14 +799,14 @@ static void sdram_init_lpddr3(const struct sdram_params *param,
 
 	/* Send Reset MRW command */
 	regs->mrw = param->EmcMrwResetCommand;
-	sleep(param->EmcMrwResetNInitWait);
+	usleep(param->EmcMrwResetNInitWait);
 
 	regs->mrw = param->EmcZcalInitDev0;
-	sleep(param->EmcZcalInitWait);
+	usleep(param->EmcZcalInitWait);
 
 	if ((param->EmcDevSelect & 2) == 0) {
 		regs->mrw = param->EmcZcalInitDev1;
-		sleep(param->EmcZcalInitWait);
+		usleep(param->EmcZcalInitWait);
 	}
 
 	/* Write mode registers */
@@ -843,14 +843,14 @@ static void sdram_init_lpddr4(const struct sdram_params *param,
 
 	/* Issue ZQCAL start, device 0 */
 	regs->zq_cal = param->EmcZcalInitDev0;
-	sleep(param->EmcZcalInitWait);
+	usleep(param->EmcZcalInitWait);
 	/* Issue ZQCAL latch */
 	regs->zq_cal = param->EmcZcalInitDev0 ^ 0x3;
 
 	if ((param->EmcDevSelect & 2) == 0) {
 		/* Same for device 1 */
 		regs->zq_cal = param->EmcZcalInitDev1;
-		sleep(param->EmcZcalInitWait);
+		usleep(param->EmcZcalInitWait);
 		regs->zq_cal = param->EmcZcalInitDev1 ^ 0x3;
 	}
 }
@@ -879,7 +879,7 @@ static void sdram_set_zq_calibration(const struct sdram_params *param,
 	}
 
 	sdram_trigger_emc_timing_update(regs);
-	sleep(param->EmcTimingControlWait);
+	usleep(param->EmcTimingControlWait);
 }
 
 static void sdram_set_refresh(const struct sdram_params *param,

@@ -29,11 +29,11 @@
 
 static u32 _display_ver = 0;
 
-static void _display_dsi_wait(u32 timeout, u32 off, u32 mask)
+static void _display_dsi_wait(u32 milliseconds, u32 off, u32 mask)
 {
-	u32 end = get_tmr_us() + timeout;
-	while (get_tmr_us() < end && (DSI(off) & mask)) {}
-	sleep(5);
+	u32 end = get_tmr_ms() + milliseconds;
+	while (DSI(off) & mask) { if (get_tmr_ms() >= end) return; }
+	usleep(5);
 }
 
 void display_init()
@@ -68,9 +68,9 @@ void display_init()
 	gpio_output_enable(GPIO_PORT_I, GPIO_PIN_0 | GPIO_PIN_1, GPIO_OUTPUT_ENABLE); //Backlight +-5V.
 	gpio_write(GPIO_PORT_I, GPIO_PIN_0, GPIO_HIGH); //Backlight +5V enable.
 
-	sleep(10000);
+	msleep(10);
 	gpio_write(GPIO_PORT_I, GPIO_PIN_1, GPIO_HIGH); //Backlight -5V enable.
-	sleep(10000);
+	msleep(10);
 
 	gpio_config(GPIO_PORT_V, GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2, GPIO_MODE_GPIO); //Backlight PWM, Enable, Reset.
 	gpio_output_enable(GPIO_PORT_V, GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2, GPIO_OUTPUT_ENABLE);
@@ -83,23 +83,23 @@ void display_init()
 	exec_cfg((u32 *)DISPLAY_A_BASE, _display_config_2, ARRAY_SIZE(_display_config_2));
 	exec_cfg((u32 *)DSI_BASE, _display_config_3, ARRAY_SIZE(_display_config_3));
 
-	sleep(10000);
+	msleep(10);
 	gpio_write(GPIO_BY_NAME(LCD_RST), GPIO_HIGH); //Backlight Reset enable.
-	sleep(60000);
+	msleep(60);
 
 	DSI(_DSIREG(DSI_BTA_TIMING)) = 0x50204;
 	DSI(_DSIREG(DSI_WR_DATA)) = 0x337;
 	DSI(_DSIREG(DSI_TRIGGER)) = DSI_TRIGGER_HOST;
-	_display_dsi_wait(250000, _DSIREG(DSI_TRIGGER), DSI_TRIGGER_HOST | DSI_TRIGGER_VIDEO);
+	_display_dsi_wait(250, _DSIREG(DSI_TRIGGER), DSI_TRIGGER_HOST | DSI_TRIGGER_VIDEO);
 
 	DSI(_DSIREG(DSI_WR_DATA)) = 0x406;
 	DSI(_DSIREG(DSI_TRIGGER)) = DSI_TRIGGER_HOST;
-	_display_dsi_wait(250000, _DSIREG(DSI_TRIGGER), DSI_TRIGGER_HOST | DSI_TRIGGER_VIDEO);
+	_display_dsi_wait(250, _DSIREG(DSI_TRIGGER), DSI_TRIGGER_HOST | DSI_TRIGGER_VIDEO);
 
 	DSI(_DSIREG(DSI_HOST_CONTROL)) = DSI_HOST_CONTROL_TX_TRIG_HOST | DSI_HOST_CONTROL_IMM_BTA | DSI_HOST_CONTROL_CS | DSI_HOST_CONTROL_ECC;
-	_display_dsi_wait(150000, _DSIREG(DSI_HOST_CONTROL), DSI_HOST_CONTROL_IMM_BTA);
+	_display_dsi_wait(150, _DSIREG(DSI_HOST_CONTROL), DSI_HOST_CONTROL_IMM_BTA);
 
-	sleep(5000);
+	msleep(5);
 
 	_display_ver = DSI(_DSIREG(DSI_RD_DATA));
 	if (_display_ver == 0x10)
@@ -108,25 +108,25 @@ void display_init()
 	DSI(_DSIREG(DSI_WR_DATA)) = 0x1105;
 	DSI(_DSIREG(DSI_TRIGGER)) = DSI_TRIGGER_HOST;
 
-	sleep(180000);
+	msleep(180);
 
 	DSI(_DSIREG(DSI_WR_DATA)) = 0x2905;
 	DSI(_DSIREG(DSI_TRIGGER)) = DSI_TRIGGER_HOST;
 
-	sleep(20000);
+	msleep(20);
 
 	exec_cfg((u32 *)DSI_BASE, _display_config_5, ARRAY_SIZE(_display_config_5));
 	exec_cfg((u32 *)CLOCK_BASE, _display_config_6, ARRAY_SIZE(_display_config_6));
 	DISPLAY_A(_DIREG(DC_DISP_DISP_CLOCK_CONTROL)) = 4;
 	exec_cfg((u32 *)DSI_BASE, _display_config_7, ARRAY_SIZE(_display_config_7));
 
-	sleep(10000);
+	msleep(10);
 
 	exec_cfg((u32 *)MIPI_CAL_BASE, _display_config_8, ARRAY_SIZE(_display_config_8));
 	exec_cfg((u32 *)DSI_BASE, _display_config_9, ARRAY_SIZE(_display_config_9));
 	exec_cfg((u32 *)MIPI_CAL_BASE, _display_config_10, ARRAY_SIZE(_display_config_10));
 
-	sleep(10000);
+	msleep(10);
 
 	exec_cfg((u32 *)DISPLAY_A_BASE, _display_config_11, ARRAY_SIZE(_display_config_11));
 }
@@ -151,7 +151,7 @@ void display_end()
 	exec_cfg((u32 *)DISPLAY_A_BASE, _display_config_12, ARRAY_SIZE(_display_config_12));
 	exec_cfg((u32 *)DSI_BASE, _display_config_13, ARRAY_SIZE(_display_config_13));
 
-	sleep(10000);
+	msleep(10);
 
 	if (_display_ver == 0x10)
 		exec_cfg((u32 *)DSI_BASE, _display_config_14, ARRAY_SIZE(_display_config_14));
@@ -159,13 +159,13 @@ void display_end()
 	DSI(_DSIREG(DSI_WR_DATA)) = 0x1005;
 	DSI(_DSIREG(DSI_TRIGGER)) = DSI_TRIGGER_HOST;
 
-	sleep(50000);
+	msleep(50);
 	gpio_write(GPIO_BY_NAME(LCD_RST), GPIO_LOW); //Backlight Reset disable.
-	sleep(10000);
+	msleep(10);
 	gpio_write(GPIO_PORT_I, GPIO_PIN_1, GPIO_LOW); //Backlight -5V disable.
-	sleep(10000);
+	msleep(10);
 	gpio_write(GPIO_PORT_I, GPIO_PIN_0, GPIO_LOW); //Backlight +5V disable.
-	sleep(10000);
+	msleep(10);
 
 	//Disable clocks.
 	CLOCK(CLK_RST_CONTROLLER_RST_DEV_H_SET) = CLK_H_DSI | CLK_H_MIPI_CAL;
@@ -193,7 +193,7 @@ void display_color_screen(u32 color)
 	DISPLAY_A(_DIREG(DC_DISP_BLEND_BACKGROUND_COLOR)) = color;
 	DISPLAY_A(_DIREG(DC_CMD_STATE_CONTROL)) = (DISPLAY_A(_DIREG(DC_CMD_STATE_CONTROL)) & 0xFFFFFFFE) | GENERAL_ACT_REQ;
 
-	sleep(35000);
+	msleep(35);
 
 	display_enable_backlight(1);
 }
@@ -203,7 +203,7 @@ u32 *display_init_framebuffer(u32 *fb)
 	//This configures the framebuffer @ 0xC0000000 with a resolution of 1280x720 (line stride 768).
 	exec_cfg((u32 *)DISPLAY_A_BASE, cfg_display_framebuffer, ARRAY_SIZE(cfg_display_framebuffer));
 
-	sleep(35000);
+	msleep(35);
 
 	return (u32 *)0xC0000000;
 }

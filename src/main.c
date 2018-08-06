@@ -338,7 +338,7 @@ static NOINLINE int execute_boot_section(IniBootSection_t* sect, unsigned char* 
         return 0;
 
     deinitialize_storage();
-    sleep(1000);
+    msleep(1);
     mc_disable_ahb_redirect();
 
 #ifdef USB_DEBUGGING
@@ -808,7 +808,7 @@ int main(void)
         }        
     }
 
-    while (btn_read() != BTN_POWER) { sleep(10000); }
+    while (btn_read() != BTN_POWER) { msleep(10); }
 progend:
     // Tell the PMIC to turn everything off
     shutdown_using_pmic();

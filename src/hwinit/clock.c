@@ -153,9 +153,9 @@ void clock_enable_kfuse()
 	CLOCK(CLK_RST_CONTROLLER_RST_DEVICES_H) |= CLK_H_KFUSE;
 	CLOCK(CLK_RST_CONTROLLER_CLK_OUT_ENB_H) &= ~CLK_H_KFUSE;
 	CLOCK(CLK_RST_CONTROLLER_CLK_OUT_ENB_H) |= CLK_H_KFUSE;
-	sleep(10);
+	usleep(10);
 	CLOCK(CLK_RST_CONTROLLER_RST_DEVICES_H) &= ~CLK_H_KFUSE;
-	sleep(20);
+	usleep(20);
 }
 
 void clock_disable_kfuse()
@@ -412,7 +412,7 @@ void clock_sdmmc_enable(u32 id, u32 val)
 	_clock_sdmmc_config_clock_source_inner(&div, id, val);
 	_clock_sdmmc_set_enable(id);
 	_clock_sdmmc_is_reset(id);
-	sleep((100000 + div - 1) / div);
+	usleep((100000 + div - 1) / div);
 	_clock_sdmmc_clear_reset(id);
 	_clock_sdmmc_is_reset(id);
 }

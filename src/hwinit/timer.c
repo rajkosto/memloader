@@ -17,18 +17,33 @@
 #include "timer.h"
 #include "t210.h"
 
+u32 get_tmr_s()
+{
+	return RTC(RTC_SECONDS);
+}
+
+u32 get_tmr_ms()
+{
+	//reading RTC_MILLI_SECONDS updates RTC_SHADOW_SECONDS value to match
+	u32 millis = RTC(RTC_MILLI_SECONDS);
+	u32 seconds = RTC(RTC_SHADOW_SECONDS);
+
+	return (millis | (seconds << 10));
+}
+
 u32 get_tmr_us()
 {
 	return TMR(TMR_US_OFFS);
 }
 
-u32 get_tmr_s()
+void msleep(u32 milliseconds)
 {
-	return RTC(APBDEV_RTC_SECONDS);
+	u32 start = RTC(RTC_MILLI_SECONDS) | (RTC(RTC_SHADOW_SECONDS) << 10);
+	while (((RTC(RTC_MILLI_SECONDS) | (RTC(RTC_SHADOW_SECONDS) << 10)) - start) <= milliseconds) {}
 }
 
-void sleep(u32 ticks)
+void usleep(u32 microseconds)
 {
-	u32 start = get_tmr_us();
-	while (get_tmr_us() - start <= ticks) {}
+	u32 start = TMR(TMR_US_OFFS);
+	while ((TMR(TMR_US_OFFS) - start) <= microseconds) {}
 }

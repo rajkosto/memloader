@@ -22,10 +22,10 @@
 
 static int _tsec_dma_wait_idle()
 {
-	u32 timeout = get_tmr_us() + 10000000;
+	u32 timeout = get_tmr_ms() + 10000;
 
 	while (!(TSEC(0x1118) & 2))
-		if (get_tmr_us() > timeout)
+		if (get_tmr_ms() > timeout)
 			return 0;
 
 	return 1;
@@ -123,13 +123,15 @@ int tsec_query(u32 carveout, u8 *dst, u32 rev)
 		res = -3;
 		goto out;
 	}
-	u32 timeout = get_tmr_us() + 2000000;
+	u32 timeout = get_tmr_ms() + 2000;
 	while (!TSEC(0x1044))
-		if (get_tmr_us() > timeout)
+	{
+		if (get_tmr_ms() > timeout)
 		{
 			res = -4;
 			goto out;
 		}
+	}
 	if (TSEC(0x1044) != 0xB0B0B0B0)
 	{
 		res = -5;

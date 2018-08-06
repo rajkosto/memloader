@@ -140,7 +140,7 @@ void mc_enable()
 	CLOCK(CLK_RST_CONTROLLER_CLK_ENB_X_SET) |= CLK_X_EMC_DLL;
 	//Clear EMC and MEM reset.
 	CLOCK(CLK_RST_CONTROLLER_RST_DEV_H_SET) = CLK_H_MEM | CLK_H_EMC; 
-	sleep(5);
+	usleep(5);
 
 	mc_disable_ahb_redirect();
 	#ifdef CONFIG_ENABLE_AHB_REDIRECT
