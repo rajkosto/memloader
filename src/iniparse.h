@@ -31,6 +31,8 @@ typedef struct IniBootSection_s
 {
 	char* sectname;
 	uint32_t pc;
+	uint8_t codeArch; 
+	int8_t pwroffHoldTime;
 } IniBootSection_t;
 
 typedef struct IniLoadSectionNode_s

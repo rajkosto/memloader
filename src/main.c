@@ -12,6 +12,8 @@
 #include "hwinit/timer.h"
 #include "hwinit/cluster.h"
 #include "hwinit/clock.h"
+#include "hwinit/max77620.h"
+#include "hwinit/max7762x.h"
 #include "hwinit/util.h"
 #include "rcm_usb.h"
 #include "usb_output.h"
@@ -337,6 +339,26 @@ static NOINLINE int execute_boot_section(IniBootSection_t* sect, unsigned char* 
     if (sect->pc == 0)
         return 0;
 
+    if (sect->pwroffHoldTime >= 0)
+    {
+        uint32_t mrt_time = sect->pwroffHoldTime;
+        if (mrt_time > 12)
+            mrt_time = 12;
+
+        uint8_t reg_val = 0;    
+        if (mrt_time <= 6) 
+            reg_val = mrt_time - 2; 
+        else 
+            reg_val = (mrt_time - 6) / 2 + 4; 
+
+        //bit 3..5 is the value we want to set
+        reg_val &= 0x7;
+        reg_val <<= 3;
+        reg_val |= 0x40; //always set normally
+
+        max77620_send_byte(MAX77620_REG_ONOFFCNFG1, reg_val);
+    }
+
     deinitialize_storage();
     msleep(1);
     mc_disable_ahb_redirect();
@@ -346,7 +368,15 @@ static NOINLINE int execute_boot_section(IniBootSection_t* sect, unsigned char* 
     memset((void*)mbox, 0, sizeof(usb_output_mbox_t));
 #endif
 
-    cluster_boot_cpu0(sect->pc);
+    if (sect->codeArch == 0)
+        cluster_boot_cpu0(sect->pc);
+    else
+    {
+        typedef void (*NoArgsFuncPtr)();
+        NoArgsFuncPtr jmpTarget = (NoArgsFuncPtr)sect->pc; 
+        jmpTarget(); //should respect bit 0 == thumb
+    }
+
 #ifndef USB_DEBUGGING
     clock_halt_bpmp();
 #else
@@ -793,6 +823,12 @@ int main(void)
                     IniBootSection_t bootSect;
                     bootSect.sectname = "RCM";
                     bootSect.pc = __builtin_bswap32(*(u32*)(&usbBuffer[0]));
+					//TODO: maybe support these sent by TegraRcmSmash
+                    bootSect.pwroffHoldTime = 4;
+                    if ((bootSect.pc & 1) != 0)
+                        bootSect.codeArch = 1;
+                    else
+                        bootSect.codeArch = 0;
 
                     execute_boot_section(&bootSect, usbBuffer, USB_BLOCK_SIZE);
                     lastCommand = CMD_NONE;

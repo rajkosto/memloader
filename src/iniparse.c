@@ -230,6 +230,7 @@ IniParsedInfo_t parse_memloader_ini(char* iniBytes, const int numBytes, Allocato
 					out.boots = allocator(sizeof(IniBootSectionNode_t));
 					currBootNode = out.boots;
 					memset(currBootNode, 0, sizeof(IniBootSectionNode_t));
+					currBootNode->curr.pwroffHoldTime = -1;
 				}
 				else
 				{
@@ -248,6 +249,7 @@ IniParsedInfo_t parse_memloader_ini(char* iniBytes, const int numBytes, Allocato
 						currNode->next = allocator(sizeof(IniBootSectionNode_t));
 						currBootNode = currNode->next;
 						memset(currBootNode, 0, sizeof(IniBootSectionNode_t));
+						currBootNode->curr.pwroffHoldTime = -1;
 					}
 				}
 				if (currBootNode->curr.sectname == NULL)
@@ -352,8 +354,8 @@ IniParsedInfo_t parse_memloader_ini(char* iniBytes, const int numBytes, Allocato
 			}
 			else if (currBootNode != NULL)
 			{
-				enum { KEY_PCADDR, KEY_COUNT };
-				static const char* keyNames[KEY_COUNT] ={ "pc" };
+				enum { KEY_PCADDR, KEY_CODEARCH, KEY_PWROFFHOLDTIME, KEY_COUNT };
+				static const char* keyNames[KEY_COUNT] ={ "pc", "codeArch", "pwroffHoldTime" };
 				int currKey;
 				for (currKey=0; currKey<KEY_COUNT; currKey++)
 				{
@@ -366,14 +368,21 @@ IniParsedInfo_t parse_memloader_ini(char* iniBytes, const int numBytes, Allocato
 					printer("Unknown key '%s' for BOOT section on line %d, skipping\n", leftSide, currLine);
 					continue;
 				}
-				else
+				else if (currKey == KEY_PCADDR || currKey == KEY_CODEARCH || currKey == KEY_PWROFFHOLDTIME)
 				{
 					char* outPos = NULL;
 					uint32_t theValue = strtoul(rightSide, &outPos, 0);
 					if (outPos == NULL || outPos == rightSide)
 						printer("Invalid value '%s' for BOOT section key '%s' on line %d, skipping\n", rightSide, leftSide, currLine);
+					else if ((currKey == KEY_CODEARCH && theValue > 1) ||
+							 (currKey == KEY_PWROFFHOLDTIME && theValue > 12))
+						printer("Value '%u' out of range for BOOT section key '%s' on line %d, skipping\n", theValue, leftSide, currLine);
 					else if (currKey == KEY_PCADDR)
 						currBootNode->curr.pc = theValue;
+					else if (currKey == KEY_CODEARCH)
+						currBootNode->curr.codeArch = (uint8_t)theValue;
+					else if (currKey == KEY_PWROFFHOLDTIME)
+						currBootNode->curr.pwroffHoldTime = (int8_t)theValue;
 				}
 			}
 			else
