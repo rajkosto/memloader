@@ -24,7 +24,7 @@
 #include "cbmem.h"
 #include <alloca.h>
 #include <strings.h>
-#define XVERSION 1
+#define XVERSION 2
 
 static int initialize_mount(FATFS* outFS, u8 devNum)
 {
