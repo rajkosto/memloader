@@ -15,6 +15,7 @@
 #include "hwinit/max77620.h"
 #include "hwinit/max7762x.h"
 #include "hwinit/util.h"
+#include "hwinit/max7762x.h"
 #include "rcm_usb.h"
 #include "usb_output.h"
 #include "storage.h"
@@ -443,6 +444,7 @@ int main(void)
     u32* lfb_base;    
 
     config_hw();
+    max77620_send_byte(MAX77620_REG_ONOFFCNFG1, 0x48); // Set forced power off via Power button to 4s
     display_enable_backlight(false);
     display_init();
 
