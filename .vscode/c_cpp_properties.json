@@ -4,6 +4,8 @@
             "name": "ARM",
             "intelliSenseMode": "clang-x64",
             "includePath": [
+                "${DEVKITARM}/arm-none-eabi/include",
+                "${DEVKITARM}/lib/gcc/arm-none-eabi/8.1.0/include",
                 "${workspaceFolder}/src"
             ],
             "defines": [
@@ -14,13 +16,7 @@
             "cStandard": "c11",
             "cppStandard": "c++17",
             "browse": {
-                "path": [
-                    "${DEVKITARM}/arm-none-eabi/include",
-                    "${DEVKITARM}/lib/gcc/arm-none-eabi/7.1.0/include",
-                    "${workspaceFolder}/src"
-                ],
-                "limitSymbolsToIncludedHeaders": true,
-                "databaseFilename": ""
+                "limitSymbolsToIncludedHeaders": true
             }
         }
     ],
