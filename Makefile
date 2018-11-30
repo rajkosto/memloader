@@ -53,6 +53,9 @@ clean:
 $(dir_out)/$(name).bin: $(dir_build)/$(name).elf
 	@mkdir -p "$(@D)"
 	$(OBJCOPY) -S -O binary $< $@
+	@echo -n "Payload size of" $@ "is "
+	@wc -c < $@
+	@echo "Max size is 126296 Bytes."
 
 $(dir_build)/$(name).elf: $(objects)
 	$(LINK.o) $(OUTPUT_OPTION) $^
