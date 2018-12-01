@@ -41,10 +41,13 @@ size_t ulzman(const void *src, size_t srcn, void *dst, size_t dstn)
 		return 0;
 	}
 	mallocneeds = (LzmaGetNumProbs(&state.Properties) * sizeof(CProb));
-	if (mallocneeds > 15980) {
-		printk("lzma: Decoder scratchpad too small!\n");
+	if (mallocneeds > sizeof(scratchpad)) {
+		printk("lzma: Decoder scratchpad too small, needs %u bytes!\n", (UInt32)mallocneeds);
 		return 0;
 	}
+	if (outSize > dstn)
+		return outSize;
+		
 	state.Probs = (CProb *)scratchpad;
 	res = LzmaDecode(&state, src + data_offset, srcn - data_offset,
 			 &inProcessed, dst, outSize, &outProcessed);

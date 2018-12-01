@@ -150,8 +150,15 @@ size_t ulz4fn(const void *src, size_t srcn, void *dst, size_t dstn)
 		has_block_checksum = h->has_block_checksum;
 
 		in += sizeof(*h);
+
 		if (h->has_content_size)
+		{
+			const size_t content_size = read_le32(in);
+			if (content_size > dstn)
+				return content_size;
+
 			in += sizeof(uint64_t);
+		}
 		in += sizeof(uint8_t);
 	}
 
