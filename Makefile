@@ -38,6 +38,11 @@ objects =	$(patsubst $(dir_source)/%.s, $(dir_build)/%.o, \
 			$(patsubst $(dir_source)/%.c, $(dir_build)/%.o, \
 			$(call rwildcard, $(dir_source), *.s *.c)))
 
+mtc_sdram_bins = $(sort $(call rwildcard, $(dir_source)/minerva_tc/mtc_tables/nintendo_switch/, sdram*.bin))
+mtc_sdram_lzma = $(dir_build)/mtc_sdram.lzma
+
+objects := $(objects) $(mtc_sdram_lzma).o
+
 define bin2o
 	bin2s $< | $(AS) -o $(@)
 endef
@@ -60,9 +65,6 @@ $(dir_out)/$(name).bin: $(dir_build)/$(name).elf
 $(dir_build)/$(name).elf: $(objects)
 	$(LINK.o) $(OUTPUT_OPTION) $^
 
-$(dir_build)/%.bin.o: $(dir_build)/%.bin
-	@$(bin2o)
-
 $(dir_build)/%.o: $(dir_source)/%.c
 	@mkdir -p "$(@D)"
 	$(COMPILE.c) $(OUTPUT_OPTION) $<
@@ -70,3 +72,15 @@ $(dir_build)/%.o: $(dir_source)/%.c
 $(dir_build)/%.o: $(dir_source)/%.s
 	@mkdir -p "$(@D)"
 	$(COMPILE.c) -x assembler-with-cpp $(OUTPUT_OPTION) $<
+
+$(mtc_sdram_lzma): $(mtc_sdram_bins)
+	@mkdir -p "$(@D)"
+	cat $^ > "$(@:.lzma=)"
+	xz -z -e -k --single-stream --format=lzma --threads=1 "$(@:.lzma=)"
+	@zip -0 "$(@:.lzma=.zip)" "$(@:.lzma=)" > /dev/null
+	@dd conv=notrunc bs=1 skip=22 seek=5 count=4 "if=$(@:.lzma=.zip)" "of=$(@)" 2>/dev/null
+	@dd conv=notrunc bs=1 seek=9 count=4 if=/dev/zero "of=$(@)" 2>/dev/null
+	@rm "$(@:.lzma=.zip)" "$(@:.lzma=)"
+
+$(dir_build)/%.lzma.o: $(dir_build)/%.lzma
+	@$(bin2o)

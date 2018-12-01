@@ -33,6 +33,7 @@ typedef struct IniBootSection_s
 	uint32_t pc;
 	uint8_t codeArch; 
 	int8_t pwroffHoldTime;
+	int16_t maxMemoryFreq;
 } IniBootSection_t;
 
 typedef struct IniLoadSectionNode_s

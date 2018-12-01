@@ -1,0 +1,3 @@
+[submodule "src/minerva_tc"]
+	path = src/minerva_tc
+	url = https://github.com/CTCaer/minerva_tc.git

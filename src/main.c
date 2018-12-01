@@ -7,6 +7,7 @@
 #include "hwinit/hwinit.h"
 #include "hwinit/di.h"
 #include "hwinit/mc.h"
+#include "hwinit/mtc.h"
 #include "hwinit/t210.h"
 #include "hwinit/sdmmc.h"
 #include "hwinit/timer.h"
@@ -24,7 +25,7 @@
 #include "cbmem.h"
 #include <alloca.h>
 #include <strings.h>
-#define XVERSION 2
+#define XVERSION 3
 
 static int initialize_mount(FATFS* outFS, u8 devNum)
 {
@@ -363,10 +364,17 @@ static NOINLINE int execute_boot_section(IniBootSection_t* sect, unsigned char* 
     msleep(1);
     mc_disable_ahb_redirect();
 
-#ifdef USB_DEBUGGING
     volatile usb_output_mbox_t* mbox = get_usb_output_mbox_addr();
     memset((void*)mbox, 0, sizeof(usb_output_mbox_t));
-#endif
+
+    int targetMemoryFreq = (int)(sect->maxMemoryFreq) * 1000;
+    if (targetMemoryFreq == 0)
+        targetMemoryFreq = 32768 * 1000; //max possible non-periodic trained frequency
+    else if (sect->codeArch != 0) //cant run periodic training if going to jump to other code on BPMP
+        targetMemoryFreq = (targetMemoryFreq < 0) ? (-targetMemoryFreq) : targetMemoryFreq;
+
+    targetMemoryFreq = mtc_perform_memory_training(targetMemoryFreq);
+    u32 lastPeriodicMs = get_tmr_ms();
 
     if (sect->codeArch == 0)
         cluster_boot_cpu0(sect->pc);
@@ -377,18 +385,28 @@ static NOINLINE int execute_boot_section(IniBootSection_t* sect, unsigned char* 
         jmpTarget(); //should respect bit 0 == thumb
     }
 
-#ifndef USB_DEBUGGING
-    clock_halt_bpmp();
-#else
     if (usbBuffer == NULL || usbBufLen == 0)
-        clock_halt_bpmp();
+    {
+        if (targetMemoryFreq >= 0) //dont need periodic training, can shut BPMP off
+            clock_halt_bpmp();
+        else
+        {
+            //spin the BPMP checking for periodic training
+            for (;;) { lastPeriodicMs = mtc_redo_periodic_training(lastPeriodicMs); }
+        }
+    }
     else
         memset(usbBuffer, 0, usbBufLen);
 
     for (;;)
     {
         unsigned int currCmd = 0;
-        while ( (currCmd = mbox->statcmd & USB_OUTPUT_COMMAND_MASK) == 0 ) {}
+        while ( (currCmd = mbox->statcmd & USB_OUTPUT_COMMAND_MASK) == 0 ) 
+        {
+            //spinloop waiting for command, perform periodic training check if needed
+            if (targetMemoryFreq < 0)
+                lastPeriodicMs = mtc_redo_periodic_training(lastPeriodicMs);
+        }
         mbox->statcmd = currCmd;
 
         if (currCmd == USB_OUTPUT_COMMAND_HALT_BPMP)
@@ -433,7 +451,6 @@ static NOINLINE int execute_boot_section(IniBootSection_t* sect, unsigned char* 
             mbox->statcmd = (mbox->statcmd & (~USB_OUTPUT_COMMAND_MASK)) | USB_OUTPUT_STATUS_OP_COMPLETE;
         }
     }    
-#endif
 
     return 1;
 }
@@ -823,8 +840,10 @@ int main(void)
                     IniBootSection_t bootSect;
                     bootSect.sectname = "RCM";
                     bootSect.pc = __builtin_bswap32(*(u32*)(&usbBuffer[0]));
+
 					//TODO: maybe support these sent by TegraRcmSmash
                     bootSect.pwroffHoldTime = 4;
+                    bootSect.maxMemoryFreq = 0;
                     if ((bootSect.pc & 1) != 0)
                         bootSect.codeArch = 1;
                     else

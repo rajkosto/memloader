@@ -354,8 +354,8 @@ IniParsedInfo_t parse_memloader_ini(char* iniBytes, const int numBytes, Allocato
 			}
 			else if (currBootNode != NULL)
 			{
-				enum { KEY_PCADDR, KEY_CODEARCH, KEY_PWROFFHOLDTIME, KEY_COUNT };
-				static const char* keyNames[KEY_COUNT] ={ "pc", "codeArch", "pwroffHoldTime" };
+				enum { KEY_PCADDR, KEY_CODEARCH, KEY_PWROFFHOLDTIME, KEY_MAXMEMORYFREQ, KEY_COUNT };
+				static const char* keyNames[KEY_COUNT] ={ "pc", "codeArch", "pwroffHoldTime", "maxMemoryFreq" };
 				int currKey;
 				for (currKey=0; currKey<KEY_COUNT; currKey++)
 				{
@@ -383,6 +383,17 @@ IniParsedInfo_t parse_memloader_ini(char* iniBytes, const int numBytes, Allocato
 						currBootNode->curr.codeArch = (uint8_t)theValue;
 					else if (currKey == KEY_PWROFFHOLDTIME)
 						currBootNode->curr.pwroffHoldTime = (int8_t)theValue;
+				}
+				else if (currKey == KEY_MAXMEMORYFREQ)
+				{
+					char* outPos = NULL;
+					int32_t theValue = strtol(rightSide, &outPos, 0);
+					if (outPos == NULL || outPos == rightSide)
+						printer("Invalid value '%s' for BOOT section key '%s' on line %d, skipping\n", rightSide, leftSide, currLine);
+					else if (currKey == KEY_MAXMEMORYFREQ && (theValue < -32768 || theValue > 32768))
+						printer("Value '%d' out of range for BOOT section key '%s' on line %d, skipping\n", theValue, leftSide, currLine);
+					else if (currKey == KEY_MAXMEMORYFREQ)
+						currBootNode->curr.maxMemoryFreq = (int16_t)theValue;
 				}
 			}
 			else

@@ -17,6 +17,7 @@
 #ifndef _SDRAM_H_
 #define _SDRAM_H_
 
+u32 get_sdram_id();
 struct sdram_params;
 void sdram_init(const struct sdram_params* params);
 const struct sdram_params* sdram_get_params();
