@@ -41,6 +41,20 @@ struct flow_ctlr {
 	vu32 flow_ctlr_spare;	/* offset 0x54 */
 	vu32 reserved;		    /* offset 0x58 */
 	vu32 fc_seq_intercept;	/* offset 0x5c */
+	vu32 cc4_retention_control; /* offset 0x64 */
+	vu32 cc4_fc_status; 		/* offset 0x68 */
+	vu32 cc4_core0_ctrl; 		/* offset 0x6c */
+	vu32 cc4_core1_ctrl; 		/* offset 0x70 */
+	vu32 cc4_core2_ctrl; 		/* offset 0x74 */
+	vu32 cc4_core3_ctrl; 		/* offset 0x78 */
+	vu32 core0_idle_counter; 	/* offset 0x7c */
+	vu32 core1_idle_counter; 	/* offset 0x80 */
+	vu32 core2_idle_counter; 	/* offset 0x84 */
+	vu32 core3_idle_counter; 	/* offset 0x88 */
+	vu32 cc4_hvc_retry; 		/* offset 0x8c */
+	vu32 l2flush_timeout_cntr;	/* offset 0x90 */
+	vu32 l2flush_control; 		/* offset 0x94 */
+	vu32 bpmp_cluster_control; 	/* offset 0x98 */
 };
 
 enum {

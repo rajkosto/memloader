@@ -70,6 +70,15 @@ u8 max77620_recv_byte(u32 regAddr)
 	return i2c_recv_byte(I2C_5, 0x3C, regAddr);
 }
 
+u32 max7762x_send_byte(u32 devAddr, u32 regAddr, u8 dataByte)
+{
+	return i2c_send_byte(I2C_5, devAddr, regAddr, dataByte);
+}
+u8 max7762x_recv_byte(u32 devAddr, u32 regAddr)
+{
+	return i2c_recv_byte(I2C_5, devAddr, regAddr);
+}
+
 int max77620_regulator_get_status(u32 id)
 {
 	if (id > REGULATOR_MAX)
