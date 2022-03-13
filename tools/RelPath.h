@@ -1,6 +1,7 @@
 #pragma once
 
 #include <boost/filesystem.hpp>
+#include <algorithm>
 
 std::string GetRelativePath(const char* inputFilename, const char* outputFilename)
 {
